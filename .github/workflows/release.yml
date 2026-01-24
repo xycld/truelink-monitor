@@ -212,7 +212,9 @@ jobs:
 
           # makepkg refuses to run as root; generate .SRCINFO as an unprivileged user.
           useradd -m -U aur_builder 2>/dev/null || true
-          chown -R aur_builder:aur_builder "${tmpdir}/aur"
+          # mktemp creates the parent directory with 0700 owned by root.
+          # makepkg runs as aur_builder and needs to be able to traverse it.
+          chown -R aur_builder:aur_builder "${tmpdir}"
           sudo -u aur_builder -H makepkg --printsrcinfo > .SRCINFO
 
           git add PKGBUILD .SRCINFO
