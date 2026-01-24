@@ -25,10 +25,21 @@ PlasmoidItem {
     Plasmoid.title: i18n("TrueLink Monitor")
     toolTipMainText: root.isConnected ? WifiMonitor.ssid : i18n("Not Connected")
     toolTipSubText: {
-        if (!root.isConnected)
-            return "";
+        if (!root.isConnected) {
+            return WifiMonitor.lastError ? i18n("Error: %1", WifiMonitor.lastError) : "";
+        }
 
-        return i18n("%1 Mbps | %2 dBm | %3 | %4 MHz", WifiMonitor.rxRate.toFixed(0), WifiMonitor.signalDbm, WifiMonitor.wifiGeneration, WifiMonitor.channelWidth);
+        var base = i18n("%1 Mbps | %2 dBm | %3 | %4 MHz",
+                        WifiMonitor.rxRate.toFixed(0),
+                        WifiMonitor.signalDbm,
+                        WifiMonitor.wifiGeneration,
+                        WifiMonitor.channelWidth);
+
+        if (WifiMonitor.lastError) {
+            return base + "\n" + i18n("Error: %1", WifiMonitor.lastError);
+        }
+
+        return base;
     }
 
     compactRepresentation: MouseArea {
@@ -295,7 +306,8 @@ PlasmoidItem {
                             ctx.lineJoin = "round";
                             ctx.lineCap = "round";
                             ctx.beginPath();
-                            var step = chartWidth / 59;
+                            var denom = Math.max(1, data.length - 1);
+                            var step = chartWidth / denom;
                             for (var j = 0; j < data.length; j++) {
                                 var x = padding + j * step;
                                 var y = padding + chartHeight - (data[j] / maxRate) * chartHeight;

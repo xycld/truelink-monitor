@@ -55,6 +55,13 @@ class WifiMonitor : public QObject
     Q_PROPERTY(QVariantList txHistory READ txHistory NOTIFY statsUpdated)
     Q_PROPERTY(double maxHistoryRate READ maxHistoryRate NOTIFY statsUpdated)
 
+    // Constants used by the UI.
+    Q_PROPERTY(int historySize READ historySize CONSTANT)
+    Q_PROPERTY(int updateIntervalMs READ updateIntervalMs CONSTANT)
+
+    // Last nl80211-related error seen by the monitor (empty when healthy).
+    Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
+
 public:
     explicit WifiMonitor(QObject *parent = nullptr);
     ~WifiMonitor() override;
@@ -96,11 +103,16 @@ public:
     [[nodiscard]] QVariantList txHistory() const;
     [[nodiscard]] double maxHistoryRate() const;
 
+    [[nodiscard]] int historySize() const;
+    [[nodiscard]] int updateIntervalMs() const;
+    [[nodiscard]] QString lastError() const;
+
 Q_SIGNALS:
     void connectionChanged();
     void availabilityChanged();
     void statsUpdated();
     void errorOccurred(const QString &message);
+    void lastErrorChanged();
 
 private Q_SLOTS:
     void onActiveConnectionChanged();

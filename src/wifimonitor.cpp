@@ -1,13 +1,47 @@
 #include "wifimonitor.h"
 #include "nl80211helper.h"
 
+#include <KLocalizedString>
+#include <QByteArray>
 #include <QTimer>
 #include <QVector>
+#include <QtGlobal>
+#include <QStringList>
 #include <NetworkManagerQt/Manager>
 #include <NetworkManagerQt/WirelessDevice>
 #include <NetworkManagerQt/AccessPoint>
 #include <NetworkManagerQt/ActiveConnection>
 #include <NetworkManagerQt/IpConfig>
+
+namespace {
+QByteArray parseBssidBytes(const QString &bssidText)
+{
+    if (bssidText.isEmpty()) {
+        return {};
+    }
+
+    const QStringList parts = bssidText.split(QLatin1Char(':'));
+    if (parts.size() != 6) {
+        return {};
+    }
+
+    QByteArray out;
+    out.reserve(6);
+
+    for (const QString &part : parts) {
+        bool ok = false;
+        const int value = part.toInt(&ok, 16);
+        if (!ok || value < 0 || value > 255) {
+            return {};
+        }
+
+        const quint8 byte = static_cast<quint8>(value);
+        out.append(static_cast<char>(byte));
+    }
+
+    return out;
+}
+} // namespace
 
 class WifiMonitor::Private {
 public:
@@ -31,11 +65,15 @@ public:
     QString cachedSecurity;
     QString cachedIpAddress;
     QString cachedGateway;
+
+    QString lastError;
     
     double smoothedTxRate = 0.0;
     double smoothedRxRate = 0.0;
     int smoothedSignalDbm = 0;
     static constexpr double smoothingFactor = 0.3;
+
+    static constexpr int updateIntervalMs = 1000;
     
     static constexpr int historySize = 60;
     QVector<double> rxHistoryBuffer;
@@ -52,6 +90,17 @@ public:
         maxRate = 100.0;
         for (double v : rxHistoryBuffer) maxRate = qMax(maxRate, v);
         for (double v : txHistoryBuffer) maxRate = qMax(maxRate, v);
+    }
+
+    void resetStats() {
+        stationInfo = Nl80211StationInfo{};
+        smoothedTxRate = 0.0;
+        smoothedRxRate = 0.0;
+        smoothedSignalDbm = 0;
+        rxHistoryBuffer.clear();
+        txHistoryBuffer.clear();
+        maxRate = 100.0;
+        lastError.clear();
     }
 };
 
@@ -90,14 +139,16 @@ void WifiMonitor::initNetworkManager() {
 
 void WifiMonitor::initNl80211() {
     if (!d->nl80211.init()) {
-        Q_EMIT errorOccurred(QStringLiteral("Failed to initialize nl80211"));
+        d->lastError = i18n("Failed to initialize nl80211");
+        Q_EMIT lastErrorChanged();
+        Q_EMIT errorOccurred(d->lastError);
     }
 }
 
 void WifiMonitor::startStatsTimer() {
     if (!d->statsTimer) {
         d->statsTimer = new QTimer(this);
-        d->statsTimer->setInterval(1000);
+        d->statsTimer->setInterval(Private::updateIntervalMs);
         connect(d->statsTimer, &QTimer::timeout, this, &WifiMonitor::updateNl80211Stats);
     }
     d->statsTimer->start();
@@ -113,6 +164,18 @@ void WifiMonitor::stopStatsTimer() {
 void WifiMonitor::onActiveConnectionChanged() {
     if (!d->wirelessDevice) {
         d->isConnected = false;
+        d->cachedSsid.clear();
+        d->cachedBssid.clear();
+        d->cachedSecurity.clear();
+        d->cachedFrequency = 0;
+        d->cachedChannelWidth = 0;
+        d->cachedIpAddress.clear();
+        d->cachedGateway.clear();
+        const bool hadError = !d->lastError.isEmpty();
+        d->resetStats();
+        if (hadError) {
+            Q_EMIT lastErrorChanged();
+        }
         stopStatsTimer();
         Q_EMIT connectionChanged();
         return;
@@ -124,6 +187,16 @@ void WifiMonitor::onActiveConnectionChanged() {
         d->isConnected = false;
         d->cachedSsid.clear();
         d->cachedBssid.clear();
+        d->cachedSecurity.clear();
+        d->cachedFrequency = 0;
+        d->cachedChannelWidth = 0;
+        d->cachedIpAddress.clear();
+        d->cachedGateway.clear();
+        const bool hadError = !d->lastError.isEmpty();
+        d->resetStats();
+        if (hadError) {
+            Q_EMIT lastErrorChanged();
+        }
         stopStatsTimer();
         Q_EMIT connectionChanged();
         return;
@@ -143,7 +216,7 @@ void WifiMonitor::onActiveConnectionChanged() {
     } else if (d->accessPoint->wpaFlags() != NetworkManager::AccessPoint::None) {
         d->cachedSecurity = QStringLiteral("WPA");
     } else {
-        d->cachedSecurity = QStringLiteral("Open");
+        d->cachedSecurity = i18nc("WiFi security", "Open");
     }
     
     auto activeConn = d->wirelessDevice->activeConnection();
@@ -156,6 +229,9 @@ void WifiMonitor::onActiveConnectionChanged() {
                 if (ipv4.isValid() && !ipv4.addresses().isEmpty()) {
                     d->cachedIpAddress = ipv4.addresses().first().ip().toString();
                     d->cachedGateway = ipv4.gateway();
+                } else {
+                    d->cachedIpAddress.clear();
+                    d->cachedGateway.clear();
                 }
             }
         }
@@ -181,15 +257,15 @@ void WifiMonitor::updateNl80211Stats() {
         return;
     }
     
-    QByteArray bssidBytes;
-    if (!d->cachedBssid.isEmpty()) {
-        QStringList parts = d->cachedBssid.split(QLatin1Char(':'));
-        if (parts.size() == 6) {
-            for (const QString& part : parts) {
-                bool ok;
-                bssidBytes.append(static_cast<char>(part.toInt(&ok, 16)));
-            }
+    const QByteArray bssidBytes = parseBssidBytes(d->cachedBssid);
+    if (!d->cachedBssid.isEmpty() && bssidBytes.isEmpty()) {
+        const QString error = i18n("Invalid BSSID format: %1", d->cachedBssid);
+        if (error != d->lastError) {
+            d->lastError = error;
+            Q_EMIT lastErrorChanged();
+            Q_EMIT errorOccurred(error);
         }
+        return;
     }
     
     const uint8_t* bssidPtr = bssidBytes.size() == 6 
@@ -199,6 +275,11 @@ void WifiMonitor::updateNl80211Stats() {
     Nl80211StationInfo newInfo = d->nl80211.getStationInfo(d->interfaceName.toUtf8().constData(), bssidPtr);
     
     if (newInfo.valid) {
+        if (!d->lastError.isEmpty()) {
+            d->lastError.clear();
+            Q_EMIT lastErrorChanged();
+        }
+
         d->stationInfo = newInfo;
         
         double newTx = newInfo.txBitrate / 10.0;
@@ -216,11 +297,12 @@ void WifiMonitor::updateNl80211Stats() {
         }
         d->addToHistory(d->smoothedRxRate, d->smoothedTxRate);
     } else {
-        QString error = d->nl80211.lastError();
-        if (!error.isEmpty()) {
-            static QString lastReportedError;
-            if (error != lastReportedError) {
-                lastReportedError = error;
+        const QString error = d->nl80211.lastError();
+        if (error != d->lastError) {
+            d->lastError = error;
+            Q_EMIT lastErrorChanged();
+
+            if (!error.isEmpty()) {
                 Q_EMIT errorOccurred(error);
             }
         }
@@ -248,11 +330,11 @@ int WifiMonitor::signalPercent() const {
 
 QString WifiMonitor::signalQuality() const {
     int dbm = signalDbm();
-    if (dbm >= -50) return QStringLiteral("Excellent");
-    if (dbm >= -60) return QStringLiteral("Good");
-    if (dbm >= -70) return QStringLiteral("Fair");
-    if (dbm >= -80) return QStringLiteral("Weak");
-    return QStringLiteral("Poor");
+    if (dbm >= -50) return i18nc("WiFi signal quality", "Excellent");
+    if (dbm >= -60) return i18nc("WiFi signal quality", "Good");
+    if (dbm >= -70) return i18nc("WiFi signal quality", "Fair");
+    if (dbm >= -80) return i18nc("WiFi signal quality", "Weak");
+    return i18nc("WiFi signal quality", "Poor");
 }
 
 double WifiMonitor::txRate() const {
@@ -264,10 +346,21 @@ double WifiMonitor::rxRate() const {
 }
 
 QString WifiMonitor::wifiGeneration() const {
-    if (!d->stationInfo.valid) return QStringLiteral("Unknown");
-    auto mode = d->stationInfo.rxMode != Nl80211StationInfo::WifiMode::Unknown 
-                ? d->stationInfo.rxMode : d->stationInfo.txMode;
-    return QString::fromUtf8(Nl80211Helper::wifiModeToGeneration(mode));
+    if (!d->stationInfo.valid) {
+        return i18nc("WiFi generation", "Unknown");
+    }
+
+    const auto mode = d->stationInfo.rxMode != Nl80211StationInfo::WifiMode::Unknown
+        ? d->stationInfo.rxMode
+        : d->stationInfo.txMode;
+
+    switch (mode) {
+        case Nl80211StationInfo::WifiMode::HT:  return i18nc("WiFi generation", "WiFi 4");
+        case Nl80211StationInfo::WifiMode::VHT: return i18nc("WiFi generation", "WiFi 5");
+        case Nl80211StationInfo::WifiMode::HE:  return i18nc("WiFi generation", "WiFi 6");
+        case Nl80211StationInfo::WifiMode::EHT: return i18nc("WiFi generation", "WiFi 7");
+        default:                                return i18nc("WiFi generation", "Legacy");
+    }
 }
 
 int WifiMonitor::mcsIndex() const {
@@ -350,4 +443,16 @@ QVariantList WifiMonitor::txHistory() const {
 
 double WifiMonitor::maxHistoryRate() const {
     return d->maxRate;
+}
+
+int WifiMonitor::historySize() const {
+    return Private::historySize;
+}
+
+int WifiMonitor::updateIntervalMs() const {
+    return Private::updateIntervalMs;
+}
+
+QString WifiMonitor::lastError() const {
+    return d->lastError;
 }

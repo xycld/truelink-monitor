@@ -13,11 +13,12 @@ namespace {
 struct CallbackData {
     Nl80211StationInfo* info = nullptr;
     int errorCode = 0;
+    bool partialParse = false;
 };
 
 int parseRateInfo(struct nlattr* rateAttr, uint32_t& bitrate, uint8_t& mcs, 
                   uint8_t& nss, uint8_t& width, Nl80211StationInfo::WifiMode& mode) {
-    struct nlattr* rateInfo[NL80211_RATE_INFO_MAX + 1];
+    struct nlattr* rateInfo[NL80211_RATE_INFO_MAX + 1] = {};
     
     if (nla_parse_nested(rateInfo, NL80211_RATE_INFO_MAX, rateAttr, nullptr) < 0) {
         return -1;
@@ -74,11 +75,13 @@ int stationInfoCallback(struct nl_msg* msg, void* arg) {
     auto* data = static_cast<CallbackData*>(arg);
     if (!data || !data->info) return NL_SKIP;
     
-    struct nlattr* tb[NL80211_ATTR_MAX + 1];
+    struct nlattr* tb[NL80211_ATTR_MAX + 1] = {};
     struct genlmsghdr* gnlh = static_cast<genlmsghdr*>(nlmsg_data(nlmsg_hdr(msg)));
     
-    nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
-              genlmsg_attrlen(gnlh, 0), nullptr);
+    if (nla_parse(tb, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
+                  genlmsg_attrlen(gnlh, 0), nullptr) < 0) {
+        return NL_SKIP;
+    }
     
     if (!tb[NL80211_ATTR_STA_INFO]) {
         return NL_SKIP;
@@ -101,13 +104,27 @@ int stationInfoCallback(struct nl_msg* msg, void* arg) {
     }
     
     if (sinfo[NL80211_STA_INFO_TX_BITRATE]) {
-        parseRateInfo(sinfo[NL80211_STA_INFO_TX_BITRATE], 
-                      info.txBitrate, info.txMcs, info.txNss, info.txChannelWidth, info.txMode);
+        if (parseRateInfo(sinfo[NL80211_STA_INFO_TX_BITRATE],
+                          info.txBitrate, info.txMcs, info.txNss, info.txChannelWidth, info.txMode) < 0) {
+            info.txBitrate = 0;
+            info.txMcs = 0;
+            info.txNss = 0;
+            info.txChannelWidth = 0;
+            info.txMode = Nl80211StationInfo::WifiMode::Unknown;
+            data->partialParse = true;
+        }
     }
     
     if (sinfo[NL80211_STA_INFO_RX_BITRATE]) {
-        parseRateInfo(sinfo[NL80211_STA_INFO_RX_BITRATE],
-                      info.rxBitrate, info.rxMcs, info.rxNss, info.rxChannelWidth, info.rxMode);
+        if (parseRateInfo(sinfo[NL80211_STA_INFO_RX_BITRATE],
+                          info.rxBitrate, info.rxMcs, info.rxNss, info.rxChannelWidth, info.rxMode) < 0) {
+            info.rxBitrate = 0;
+            info.rxMcs = 0;
+            info.rxNss = 0;
+            info.rxChannelWidth = 0;
+            info.rxMode = Nl80211StationInfo::WifiMode::Unknown;
+            data->partialParse = true;
+        }
     }
     
     return NL_OK;
@@ -219,6 +236,13 @@ Nl80211StationInfo Nl80211Helper::getStationInfo(const char* ifname, const uint8
     nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, [](struct nl_msg*, void*) -> int { return NL_STOP; }, nullptr);
     nl_cb_err(cb, NL_CB_CUSTOM, [](struct sockaddr_nl*, struct nlmsgerr* err, void* arg) -> int {
         auto* data = static_cast<CallbackData*>(arg);
+        if (!data) {
+            return NL_STOP;
+        }
+        if (!err) {
+            data->errorCode = -EIO;
+            return NL_STOP;
+        }
         data->errorCode = err->error;
         return NL_STOP;
     }, &cbData);
@@ -244,6 +268,11 @@ Nl80211StationInfo Nl80211Helper::getStationInfo(const char* ifname, const uint8
         } else {
             m_lastError = QStringLiteral("Kernel error: %1").arg(cbData.errorCode);
         }
+    }
+
+    // If we got some station info but failed to decode rate fields, keep the info but annotate lastError.
+    if (result.valid && cbData.partialParse && m_lastError.isEmpty()) {
+        m_lastError = QStringLiteral("Incomplete station info (failed to parse rate fields)");
     }
     
     nl_cb_put(cb);
