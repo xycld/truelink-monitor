@@ -166,8 +166,22 @@ jobs:
         env:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
 
-      - name: Update and push AUR repo
+      - name: Check AUR access
+        id: aur_access
         if: ${{ steps.aur_config.outputs.enabled == 'true' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="ssh://aur@aur.archlinux.org/plasma6-applet-truelink-monitor.git"
+          if GIT_SSH_COMMAND="$GIT_SSH_COMMAND" git ls-remote "$repo" HEAD >/dev/null 2>&1; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "AUR SSH key cannot access ${repo}; skipping AUR publish." >&2
+          fi
+
+      - name: Update and push AUR repo
+        if: ${{ steps.aur_config.outputs.enabled == 'true' && steps.aur_access.outputs.enabled == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
