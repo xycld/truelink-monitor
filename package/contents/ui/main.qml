@@ -245,12 +245,26 @@ PlasmoidItem {
                         property var rxData: WifiMonitor.rxHistory
                         property var txData: WifiMonitor.txHistory
                         property real maxRate: WifiMonitor.maxHistoryRate
+                        property bool paintScheduled: false
 
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        onRxDataChanged: requestPaint()
-                        onTxDataChanged: requestPaint()
-                        onMaxRateChanged: requestPaint()
+
+                        function schedulePaint() {
+                            if (paintScheduled) {
+                                return;
+                            }
+                            paintScheduled = true;
+                            // Coalesce multiple property change notifications into a single repaint.
+                            Qt.callLater(function() {
+                                paintScheduled = false;
+                                rateChart.requestPaint();
+                            });
+                        }
+
+                        onRxDataChanged: schedulePaint()
+                        onTxDataChanged: schedulePaint()
+                        onMaxRateChanged: schedulePaint()
                         onPaint: {
                             var ctx = getContext("2d");
                             ctx.clearRect(0, 0, width, height);

@@ -16,8 +16,10 @@ public:
         
         qmlRegisterSingletonType<WifiMonitor>(uri, 1, 0, "WifiMonitor",
             [](QQmlEngine *engine, QJSEngine *) -> QObject * {
-                auto *monitor = new WifiMonitor;
-                engine->setObjectOwnership(monitor, QQmlEngine::CppOwnership);
+                // Parent to the engine so the singleton gets cleaned up when the QML engine is destroyed
+                // (e.g. when the plasmoid is removed/reloaded).
+                auto *monitor = new WifiMonitor(engine);
+                QQmlEngine::setObjectOwnership(monitor, QQmlEngine::CppOwnership);
                 return monitor;
             });
     }
