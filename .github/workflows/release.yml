@@ -105,3 +105,77 @@ jobs:
           files: |
             truelink-monitor-${{ github.ref_name }}.tar.gz
             truelink-monitor-${{ github.ref_name }}.tar.gz.sha256
+
+  aur:
+    name: Publish AUR
+    needs: publish
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+
+    # If the AUR SSH key isn't configured, skip rather than failing releases.
+    if: ${{ secrets.AUR_SSH_PRIVATE_KEY != '' }}
+
+    steps:
+      - name: Install tools
+        run: |
+          set -euo pipefail
+          SYSTEMD_OFFLINE=1 pacman -Sy --noconfirm --needed archlinux-keyring
+          SYSTEMD_OFFLINE=1 pacman -S --noconfirm --needed \
+            base-devel \
+            curl \
+            git \
+            openssh
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(ssh-agent -s)"
+          ssh-add - <<< "${AUR_SSH_PRIVATE_KEY}"
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -t ed25519 aur.archlinux.org >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+
+      - name: Update and push AUR repo
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${GITHUB_REF_NAME}"
+          ver="${tag#v}"
+
+          sha_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${tag}/truelink-monitor-${tag}.tar.gz.sha256"
+          sha256="$(curl -fsSL "${sha_url}" | awk '{print $1}')"
+          if [ -z "${sha256}" ]; then
+            echo "ERROR: failed to read sha256 from ${sha_url}" >&2
+            exit 1
+          fi
+
+          tmpdir="$(mktemp -d)"
+          git clone "ssh://aur@aur.archlinux.org/plasma6-applet-truelink-monitor.git" "${tmpdir}/aur"
+          cd "${tmpdir}/aur"
+
+          cp "${GITHUB_WORKSPACE}/packaging/aur/PKGBUILD" ./PKGBUILD
+
+          # Update version and checksum to match the release.
+          perl -pi -e "s/^pkgver=.*/pkgver=${ver}/" PKGBUILD
+          perl -pi -e "s/^sha256sums=\('.*'\)/sha256sums=('${sha256}')/" PKGBUILD
+
+          makepkg --printsrcinfo > .SRCINFO
+
+          git add PKGBUILD .SRCINFO
+          if git diff --cached --quiet; then
+            echo "AUR repo already up to date"
+            exit 0
+          fi
+
+          git -c user.name="github-actions" -c user.email="actions@github.com" \
+            commit -m "Update to ${tag}"
+          git push origin HEAD:master
