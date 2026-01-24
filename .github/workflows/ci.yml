@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-archlinux:
+    name: Build (Arch Linux)
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          # Avoid full system upgrades in containers (systemd hooks can fail).
+          SYSTEMD_OFFLINE=1 pacman -Sy --noconfirm --needed archlinux-keyring
+
+          # Arch package names for Plasma/KF can change over time.
+          # Pick the first available candidate without failing the job early.
+          pick_pkg() {
+            for cand in "$@"; do
+              if pacman -Si "$cand" >/dev/null 2>&1; then
+                printf '%s\n' "$cand"
+                return 0
+              fi
+            done
+            printf '%s\n' ""
+            return 0
+          }
+
+          # On Arch (Plasma 6), the CMake `Plasma` package is provided by `libplasma`.
+          PLASMA_FRAMEWORK="$(pick_pkg libplasma plasma-framework plasma-framework6 plasma-framework5 kf6-plasma)"
+          if [ -z "$PLASMA_FRAMEWORK" ]; then
+            echo "ERROR: Could not find a Plasma framework package in repos." >&2
+            pacman -Ss plasma-framework || true
+            exit 1
+          fi
+
+          SYSTEMD_OFFLINE=1 pacman -S --noconfirm --needed \
+            appstream \
+            cmake \
+            extra-cmake-modules \
+            gcc \
+            git \
+            kconfig \
+            kcoreaddons \
+            ki18n \
+            libnl \
+            networkmanager \
+            networkmanager-qt \
+            "$PLASMA_FRAMEWORK" \
+            pkgconf \
+            qt6-base \
+            qt6-declarative
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Validate AppStream
+        run: appstreamcli validate --no-net org.kde.plasma.truelinkmonitor.metainfo.xml

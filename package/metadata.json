@@ -1,0 +1,21 @@
+{
+    "KPlugin": {
+        "Id": "org.kde.plasma.truelinkmonitor",
+        "Name": "TrueLink Monitor",
+        "Description": "Real WiFi physical layer monitor showing RSSI dBm, PHY Rate, MCS, MIMO and channel width",
+        "Icon": "network-wireless",
+        "Authors": [
+            {
+                "Name": "TrueLink"
+            }
+        ],
+        "Category": "System Information",
+        "License": "MIT",
+        "Version": "1.0.0",
+        "Website": "https://github.com/xycld/truelink-monitor"
+    },
+    "X-Plasma-API": "declarativeappletscript",
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-MainScript": "ui/main.qml",
+    "X-Plasma-Provides": ["org.kde.plasma.systemtray"]
+}

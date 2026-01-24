@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream metadata for KDE Discover (Plasma addon). -->
+<component type="addon">
+  <id>org.kde.plasma.truelinkmonitor</id>
+  <extends>org.kde.plasma.desktop</extends>
+
+  <name>TrueLink Monitor</name>
+  <summary>Wi-Fi PHY monitor widget for Plasma 6</summary>
+
+  <developer id="io.github.xycld">
+    <name>xycld</name>
+  </developer>
+
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>MIT</project_license>
+
+  <description>
+    <p>
+      TrueLink Monitor is a KDE Plasma widget that shows Wi-Fi physical layer
+      information such as RSSI (dBm), PHY rates, MCS/NSS, and channel width,
+      alongside basic connection details.
+    </p>
+  </description>
+
+  <url type="homepage">https://github.com/xycld/truelink-monitor</url>
+  <url type="bugtracker">https://github.com/xycld/truelink-monitor/issues</url>
+
+  <content_rating type="oars-1.1"/>
+</component>
