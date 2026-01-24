@@ -175,6 +175,10 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Force non-interactive SSH for git operations in CI.
+          # This avoids host key prompts that would otherwise hard-fail the job.
+          export GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+
           tag="${GITHUB_REF_NAME}"
           ver="${tag#v}"
 
