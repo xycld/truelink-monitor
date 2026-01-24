@@ -138,7 +138,8 @@ jobs:
             base-devel \
             curl \
             git \
-            openssh
+            openssh \
+            sudo
 
       - name: Checkout
         if: ${{ steps.aur_config.outputs.enabled == 'true' }}
@@ -209,7 +210,10 @@ jobs:
           perl -pi -e "s/^pkgver=.*/pkgver=${ver}/" PKGBUILD
           perl -pi -e "s/^sha256sums=\('.*'\)/sha256sums=('${sha256}')/" PKGBUILD
 
-          makepkg --printsrcinfo > .SRCINFO
+          # makepkg refuses to run as root; generate .SRCINFO as an unprivileged user.
+          useradd -m -U aur_builder 2>/dev/null || true
+          chown -R aur_builder:aur_builder "${tmpdir}/aur"
+          sudo -u aur_builder -H makepkg --printsrcinfo > .SRCINFO
 
           git add PKGBUILD .SRCINFO
           if git diff --cached --quiet; then
