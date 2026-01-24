@@ -1,6 +1,6 @@
 # Maintainer: xycld
 pkgname=plasma6-applet-truelink-monitor
-pkgver=1.0.1
+pkgver=1.0.2
 pkgrel=1
 pkgdesc="Real WiFi physical layer monitor for KDE Plasma 6 - shows RSSI dBm, PHY Rate, MCS, MIMO"
 arch=('x86_64')
