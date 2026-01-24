@@ -112,11 +112,25 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux:base-devel
 
-    # If the AUR SSH key isn't configured, skip rather than failing releases.
-    if: ${{ secrets.AUR_SSH_PRIVATE_KEY != '' }}
-
     steps:
+      # NOTE: `secrets.*` is not available in job-level `if:` expressions.
+      # Use a step output to guard the rest of the job.
+      - name: Check AUR configuration
+        id: aur_config
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${AUR_SSH_PRIVATE_KEY}" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "AUR_SSH_PRIVATE_KEY not set; skipping AUR publish."
+            exit 0
+          fi
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+
       - name: Install tools
+        if: ${{ steps.aur_config.outputs.enabled == 'true' }}
         run: |
           set -euo pipefail
           SYSTEMD_OFFLINE=1 pacman -Sy --noconfirm --needed archlinux-keyring
@@ -127,9 +141,11 @@ jobs:
             openssh
 
       - name: Checkout
+        if: ${{ steps.aur_config.outputs.enabled == 'true' }}
         uses: actions/checkout@v4
 
       - name: Configure SSH
+        if: ${{ steps.aur_config.outputs.enabled == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -144,6 +160,7 @@ jobs:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
 
       - name: Update and push AUR repo
+        if: ${{ steps.aur_config.outputs.enabled == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
