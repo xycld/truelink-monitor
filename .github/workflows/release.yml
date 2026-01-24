@@ -149,23 +149,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          eval "$(ssh-agent -s)"
-          ssh-add - <<< "${AUR_SSH_PRIVATE_KEY}"
-
+          umask 077
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
+
+          # Persist the key for subsequent steps (ssh-agent does not persist across steps).
+          printf '%s\n' "${AUR_SSH_PRIVATE_KEY}" > ~/.ssh/aur_key
+          chmod 600 ~/.ssh/aur_key
+
           # AUR may not advertise an ed25519 host key; scan all supported types.
           ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-          # In CI we need a non-interactive SSH host key policy.
-          # AUR host key prompts would fail the workflow (no TTY).
-          cat > ~/.ssh/config <<'EOF'
-          Host aur.archlinux.org
-            StrictHostKeyChecking no
-            UserKnownHostsFile /dev/null
-          EOF
-          chmod 600 ~/.ssh/config
+          # Non-interactive SSH for git in later steps.
+          echo "GIT_SSH_COMMAND=ssh -i $HOME/.ssh/aur_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" >> "$GITHUB_ENV"
         env:
           AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
 
@@ -175,9 +172,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Force non-interactive SSH for git operations in CI.
-          # This avoids host key prompts that would otherwise hard-fail the job.
-          export GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+          # Force git to use the configured AUR key in CI.
+          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/aur_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
           tag="${GITHUB_REF_NAME}"
           ver="${tag#v}"
