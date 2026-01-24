@@ -204,6 +204,10 @@ jobs:
           git clone "ssh://aur@aur.archlinux.org/plasma6-applet-truelink-monitor.git" "${tmpdir}/aur"
           cd "${tmpdir}/aur"
 
+          # We chown the temp dir for makepkg; when git runs as root it may
+          # refuse to operate in a repo owned by a different user.
+          safedir="$(pwd)"
+
           cp "${GITHUB_WORKSPACE}/packaging/aur/PKGBUILD" ./PKGBUILD
 
           # Update version and checksum to match the release.
@@ -217,12 +221,12 @@ jobs:
           chown -R aur_builder:aur_builder "${tmpdir}"
           sudo -u aur_builder -H makepkg --printsrcinfo > .SRCINFO
 
-          git add PKGBUILD .SRCINFO
-          if git diff --cached --quiet; then
+          git -c safe.directory="${safedir}" add PKGBUILD .SRCINFO
+          if git -c safe.directory="${safedir}" diff --cached --quiet; then
             echo "AUR repo already up to date"
             exit 0
           fi
 
-          git -c user.name="github-actions" -c user.email="actions@github.com" \
+          git -c safe.directory="${safedir}" -c user.name="github-actions" -c user.email="actions@github.com" \
             commit -m "Update to ${tag}"
-          git push origin HEAD:master
+          git -c safe.directory="${safedir}" push origin HEAD:master
