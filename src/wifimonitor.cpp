@@ -7,7 +7,6 @@
 #include <QVector>
 #include <QtGlobal>
 #include <QStringList>
-#include <QDebug>
 #include <NetworkManagerQt/Manager>
 #include <NetworkManagerQt/WirelessDevice>
 #include <NetworkManagerQt/AccessPoint>
@@ -254,13 +253,7 @@ void WifiMonitor::onDeviceStateChanged() {
 }
 
 void WifiMonitor::updateNl80211Stats() {
-    static int updateCount = 0;
-    ++updateCount;
-    qDebug() << "[WifiMonitor] updateNl80211Stats called, update #" << updateCount;
-    
     if (!d->isConnected || d->interfaceName.isEmpty()) {
-        qDebug() << "[WifiMonitor] Skipping update - isConnected:" << d->isConnected 
-                 << "interfaceName:" << d->interfaceName;
         return;
     }
     
@@ -272,7 +265,6 @@ void WifiMonitor::updateNl80211Stats() {
             Q_EMIT lastErrorChanged();
             Q_EMIT errorOccurred(error);
         }
-        qWarning() << "[WifiMonitor] Invalid BSSID format:" << d->cachedBssid;
         return;
     }
     
@@ -280,12 +272,7 @@ void WifiMonitor::updateNl80211Stats() {
         ? reinterpret_cast<const uint8_t*>(bssidBytes.constData()) 
         : nullptr;
     
-    qDebug() << "[WifiMonitor] Calling getStationInfo for interface:" << d->interfaceName
-             << "bssid:" << d->cachedBssid;
-    
     Nl80211StationInfo newInfo = d->nl80211.getStationInfo(d->interfaceName.toUtf8().constData(), bssidPtr);
-    
-    qDebug() << "[WifiMonitor] getStationInfo returned, valid:" << newInfo.valid;
     
     if (newInfo.valid) {
         if (!d->lastError.isEmpty()) {

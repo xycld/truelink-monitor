@@ -7,7 +7,6 @@
 #include <net/if.h>
 #include <cstring>
 #include <cerrno>
-#include <QDebug>
 
 namespace {
 
@@ -176,38 +175,28 @@ bool Nl80211Helper::isValid() const {
 }
 
 Nl80211StationInfo Nl80211Helper::getStationInfo(const char* ifname, const uint8_t* bssid) {
-    static int queryCount = 0;
-    ++queryCount;
-    qDebug() << "[nl80211] getStationInfo called, query #" << queryCount 
-             << "ifname:" << (ifname ? ifname : "null")
-             << "bssid:" << (bssid ? "provided" : "null");
-    
     Nl80211StationInfo result;
     m_lastError.clear();
     
     if (!ifname) {
         m_lastError = QStringLiteral("No interface name provided");
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
         return result;
     }
     
     unsigned int ifindex = if_nametoindex(ifname);
     if (ifindex == 0) {
         m_lastError = QStringLiteral("Interface not found: %1").arg(QString::fromUtf8(ifname));
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
         return result;
     }
     
     struct nl_sock* sock = nl_socket_alloc();
     if (!sock) {
         m_lastError = QStringLiteral("Failed to allocate netlink socket");
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
         return result;
     }
     
     if (genl_connect(sock) < 0) {
         m_lastError = QStringLiteral("Failed to connect netlink socket");
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
         nl_socket_free(sock);
         return result;
     }
@@ -215,7 +204,6 @@ Nl80211StationInfo Nl80211Helper::getStationInfo(const char* ifname, const uint8
     int nl80211Id = genl_ctrl_resolve(sock, "nl80211");
     if (nl80211Id < 0) {
         m_lastError = QStringLiteral("Failed to resolve nl80211");
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
         nl_socket_free(sock);
         return result;
     }
@@ -223,17 +211,14 @@ Nl80211StationInfo Nl80211Helper::getStationInfo(const char* ifname, const uint8
     struct nl_msg* msg = nlmsg_alloc();
     if (!msg) {
         m_lastError = QStringLiteral("Failed to allocate netlink message");
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
         nl_socket_free(sock);
         return result;
     }
     
     int flags = bssid ? 0 : NLM_F_DUMP;
-    qDebug() << "[nl80211] Using flags:" << flags << (bssid ? "(single station)" : "(DUMP mode)");
     
     if (!genlmsg_put(msg, 0, 0, nl80211Id, 0, flags, NL80211_CMD_GET_STATION, 0)) {
         m_lastError = QStringLiteral("Failed to create netlink message");
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
         nlmsg_free(msg);
         nl_socket_free(sock);
         return result;
@@ -241,7 +226,6 @@ Nl80211StationInfo Nl80211Helper::getStationInfo(const char* ifname, const uint8
     
     if (nla_put_u32(msg, NL80211_ATTR_IFINDEX, ifindex) < 0) {
         m_lastError = QStringLiteral("Failed to set interface index");
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
         nlmsg_free(msg);
         nl_socket_free(sock);
         return result;
@@ -250,7 +234,6 @@ Nl80211StationInfo Nl80211Helper::getStationInfo(const char* ifname, const uint8
     if (bssid) {
         if (nla_put(msg, NL80211_ATTR_MAC, 6, bssid) < 0) {
             m_lastError = QStringLiteral("Failed to set BSSID");
-            qWarning() << "[nl80211] ERROR:" << m_lastError;
             nlmsg_free(msg);
             nl_socket_free(sock);
             return result;
@@ -264,7 +247,6 @@ Nl80211StationInfo Nl80211Helper::getStationInfo(const char* ifname, const uint8
     struct nl_cb* cb = nl_cb_alloc(NL_CB_DEFAULT);
     if (!cb) {
         m_lastError = QStringLiteral("Failed to allocate callback");
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
         nlmsg_free(msg);
         nl_socket_free(sock);
         return result;
@@ -285,22 +267,16 @@ Nl80211StationInfo Nl80211Helper::getStationInfo(const char* ifname, const uint8
         return NL_STOP;
     }, &cbData);
     
-    qDebug() << "[nl80211] Sending netlink message...";
     int ret = nl_send_auto(sock, msg);
     if (ret < 0) {
         m_lastError = QStringLiteral("Failed to send netlink message: %1").arg(QString::fromUtf8(nl_geterror(ret)));
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
         nl_cb_put(cb);
         nlmsg_free(msg);
         nl_socket_free(sock);
         return result;
     }
-    qDebug() << "[nl80211] Message sent, bytes:" << ret << "- waiting for response...";
     
     ret = nl_recvmsgs(sock, cb);
-    qDebug() << "[nl80211] nl_recvmsgs returned:" << ret 
-             << "cbData.errorCode:" << cbData.errorCode
-             << "result.valid:" << result.valid;
     
     if (ret < 0) {
         if (ret == -NLE_PERM || cbData.errorCode == -EPERM) {
@@ -308,32 +284,22 @@ Nl80211StationInfo Nl80211Helper::getStationInfo(const char* ifname, const uint8
         } else {
             m_lastError = QStringLiteral("Failed to receive netlink response: %1").arg(QString::fromUtf8(nl_geterror(ret)));
         }
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
     } else if (cbData.errorCode < 0) {
         if (cbData.errorCode == -EPERM) {
             m_lastError = QStringLiteral("Permission denied - may need CAP_NET_ADMIN");
         } else {
             m_lastError = QStringLiteral("Kernel error: %1").arg(cbData.errorCode);
         }
-        qWarning() << "[nl80211] ERROR:" << m_lastError;
     }
 
     if (result.valid && cbData.partialParse && m_lastError.isEmpty()) {
         m_lastError = QStringLiteral("Incomplete station info (failed to parse rate fields)");
-        qWarning() << "[nl80211] WARNING:" << m_lastError;
-    }
-    
-    if (result.valid) {
-        qDebug() << "[nl80211] SUCCESS - signal:" << result.signalDbm << "dBm"
-                 << "rxBitrate:" << result.rxBitrate / 10.0 << "Mbps"
-                 << "txBitrate:" << result.txBitrate / 10.0 << "Mbps";
     }
     
     nl_cb_put(cb);
     nlmsg_free(msg);
     nl_socket_free(sock);
     
-    qDebug() << "[nl80211] getStationInfo completed, query #" << queryCount;
     return result;
 }
 
