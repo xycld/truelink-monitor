@@ -41,11 +41,19 @@ PlasmaExtras.Representation {
 
     function maskIp(ip: string): string {
         if (!ip) return i18n("N/A");
-        return "XXX.XXX.XXX.XXX";
+        return "***.***.***.***";
+    }
+
+    function formatNumber(num: real): string {
+        var n = num || 0;
+        if (n >= 1000000000) return i18n("%1M", (n / 1000000).toFixed(1));
+        if (n >= 1000000) return i18n("%1K", (n / 1000).toFixed(1));
+        return n.toString();
     }
 
     PlasmaComponents3.ScrollView {
         anchors.fill: parent
+        anchors.margins: Kirigami.Units.smallSpacing
         contentWidth: availableWidth
         PlasmaComponents3.ScrollBar.horizontal.policy: PlasmaComponents3.ScrollBar.AlwaysOff
 
@@ -361,52 +369,70 @@ PlasmaExtras.Representation {
                 Layout.fillWidth: true
             }
 
-            GridLayout {
+            RowLayout {
                 visible: fullRoot.isConnected && Plasmoid.configuration.showTrafficStats
                 Layout.fillWidth: true
                 Layout.margins: Kirigami.Units.smallSpacing
-                columns: 4
-                columnSpacing: Kirigami.Units.largeSpacing
-                rowSpacing: Kirigami.Units.smallSpacing
+                spacing: Kirigami.Units.largeSpacing
 
-                PlasmaComponents3.Label {
-                    text: i18nc("Received bytes", "RX Bytes")
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: 0.6
+                // RX column (fixed 50% width)
+                GridLayout {
+                    Layout.fillWidth: true
+                    columns: 2
+                    columnSpacing: Kirigami.Units.smallSpacing
+                    rowSpacing: Kirigami.Units.smallSpacing
+
+                    PlasmaComponents3.Label {
+                        text: i18nc("Received bytes", "RX Bytes")
+                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        opacity: 0.6
+                    }
+
+                    PlasmaComponents3.Label {
+                        text: fullRoot.formatBytes(WifiMonitor.rxBytes)
+                        Layout.fillWidth: true
+                    }
+
+                    PlasmaComponents3.Label {
+                        text: i18nc("Received packets", "RX Pkts")
+                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        opacity: 0.6
+                    }
+
+                    PlasmaComponents3.Label {
+                        text: fullRoot.formatNumber(WifiMonitor.rxPackets)
+                        Layout.fillWidth: true
+                    }
                 }
 
-                PlasmaComponents3.Label {
-                    text: fullRoot.formatBytes(WifiMonitor.rxBytes)
-                }
+                // TX column (fixed 50% width)
+                GridLayout {
+                    Layout.fillWidth: true
+                    columns: 2
+                    columnSpacing: Kirigami.Units.smallSpacing
+                    rowSpacing: Kirigami.Units.smallSpacing
 
-                PlasmaComponents3.Label {
-                    text: i18nc("Transmitted bytes", "TX Bytes")
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: 0.6
-                }
+                    PlasmaComponents3.Label {
+                        text: i18nc("Transmitted bytes", "TX Bytes")
+                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        opacity: 0.6
+                    }
 
-                PlasmaComponents3.Label {
-                    text: fullRoot.formatBytes(WifiMonitor.txBytes)
-                }
+                    PlasmaComponents3.Label {
+                        text: fullRoot.formatBytes(WifiMonitor.txBytes)
+                        Layout.fillWidth: true
+                    }
 
-                PlasmaComponents3.Label {
-                    text: i18nc("Received packets", "RX Pkts")
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: 0.6
-                }
+                    PlasmaComponents3.Label {
+                        text: i18nc("Transmitted packets", "TX Pkts")
+                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        opacity: 0.6
+                    }
 
-                PlasmaComponents3.Label {
-                    text: (WifiMonitor.rxPackets || 0).toLocaleString()
-                }
-
-                PlasmaComponents3.Label {
-                    text: i18nc("Transmitted packets", "TX Pkts")
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    opacity: 0.6
-                }
-
-                PlasmaComponents3.Label {
-                    text: (WifiMonitor.txPackets || 0).toLocaleString()
+                    PlasmaComponents3.Label {
+                        text: fullRoot.formatNumber(WifiMonitor.txPackets)
+                        Layout.fillWidth: true
+                    }
                 }
             }
 
@@ -431,7 +457,7 @@ PlasmaExtras.Representation {
                 }
 
                 PlasmaComponents3.Label {
-                    text: (WifiMonitor.txRetries || 0).toLocaleString()
+                    text: fullRoot.formatNumber(WifiMonitor.txRetries)
                 }
 
                 PlasmaComponents3.Label {
@@ -441,7 +467,7 @@ PlasmaExtras.Representation {
                 }
 
                 PlasmaComponents3.Label {
-                    text: (WifiMonitor.txFailed || 0).toLocaleString()
+                    text: fullRoot.formatNumber(WifiMonitor.txFailed)
                     color: (WifiMonitor.txFailed || 0) > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
                 }
 
@@ -452,7 +478,7 @@ PlasmaExtras.Representation {
                 }
 
                 PlasmaComponents3.Label {
-                    text: (WifiMonitor.rxDropped || 0).toLocaleString()
+                    text: fullRoot.formatNumber(WifiMonitor.rxDropped)
                     color: (WifiMonitor.rxDropped || 0) > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
                 }
 
@@ -465,7 +491,7 @@ PlasmaExtras.Representation {
 
                 PlasmaComponents3.Label {
                     visible: Plasmoid.configuration.showBeaconStats
-                    text: (WifiMonitor.beaconLoss || 0).toLocaleString()
+                    text: fullRoot.formatNumber(WifiMonitor.beaconLoss)
                     color: (WifiMonitor.beaconLoss || 0) > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
                 }
             }
@@ -562,7 +588,7 @@ PlasmaExtras.Representation {
                     id: bssidLabel
                     visible: Plasmoid.configuration.showBssid
                     property bool revealed: false
-                    text: revealed ? WifiMonitor.bssid : "XX:XX:XX:XX:XX:XX"
+                    text: revealed ? WifiMonitor.bssid : "**:**:**:**:**:**"
                     font.family: "monospace"
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
 

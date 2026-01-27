@@ -11,7 +11,7 @@
         ],
         "Category": "System Information",
         "License": "MIT",
-        "Version": "1.1.1",
+        "Version": "1.1.2",
         "Website": "https://github.com/xycld/truelink-monitor"
     },
     "X-Plasma-API": "declarativeappletscript",
