@@ -338,6 +338,7 @@ PlasmaExtras.Representation {
                 // Right column (fixed 50% width)
                 GridLayout {
                     Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
                     columns: 2
                     columnSpacing: Kirigami.Units.smallSpacing
                     rowSpacing: Kirigami.Units.smallSpacing
@@ -353,7 +354,6 @@ PlasmaExtras.Representation {
                         visible: Plasmoid.configuration.showRxTxRate
                         text: i18n("%1 Mbps", WifiMonitor.txRate.toFixed(1))
                         font.bold: true
-                        Layout.fillWidth: true
                     }
 
                     PlasmaComponents3.Label {
@@ -367,7 +367,6 @@ PlasmaExtras.Representation {
                         visible: Plasmoid.configuration.showMimo
                         text: WifiMonitor.mimoStreams > 0 ? i18n("%1x%1", WifiMonitor.mimoStreams) : "N/A"
                         font.bold: true
-                        Layout.fillWidth: true
                     }
 
                     PlasmaComponents3.Label {
@@ -378,7 +377,6 @@ PlasmaExtras.Representation {
 
                     PlasmaComponents3.Label {
                         text: WifiMonitor.security
-                        Layout.fillWidth: true
                     }
                 }
             }
@@ -428,6 +426,7 @@ PlasmaExtras.Representation {
                 // TX column (fixed 50% width)
                 GridLayout {
                     Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
                     columns: 2
                     columnSpacing: Kirigami.Units.smallSpacing
                     rowSpacing: Kirigami.Units.smallSpacing
@@ -440,7 +439,6 @@ PlasmaExtras.Representation {
 
                     PlasmaComponents3.Label {
                         text: fullRoot.formatBytes(WifiMonitor.txBytes)
-                        Layout.fillWidth: true
                     }
 
                     PlasmaComponents3.Label {
@@ -451,7 +449,6 @@ PlasmaExtras.Representation {
 
                     PlasmaComponents3.Label {
                         text: fullRoot.formatNumber(WifiMonitor.txPackets)
-                        Layout.fillWidth: true
                     }
                 }
             }
@@ -502,6 +499,7 @@ PlasmaExtras.Representation {
                 // Right column (fixed 50% width)
                 GridLayout {
                     Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
                     columns: 2
                     columnSpacing: Kirigami.Units.smallSpacing
                     rowSpacing: Kirigami.Units.smallSpacing
@@ -515,7 +513,6 @@ PlasmaExtras.Representation {
                     PlasmaComponents3.Label {
                         text: fullRoot.formatNumber(WifiMonitor.txFailed)
                         color: (WifiMonitor.txFailed || 0) > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
-                        Layout.fillWidth: true
                     }
 
                     PlasmaComponents3.Label {
@@ -529,7 +526,6 @@ PlasmaExtras.Representation {
                         visible: Plasmoid.configuration.showBeaconStats
                         text: fullRoot.formatNumber(WifiMonitor.beaconLoss)
                         color: (WifiMonitor.beaconLoss || 0) > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
-                        Layout.fillWidth: true
                     }
                 }
             }
@@ -687,6 +683,7 @@ PlasmaExtras.Representation {
                 // Right column (fixed 50% width)
                 GridLayout {
                     Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
                     columns: 2
                     columnSpacing: Kirigami.Units.smallSpacing
                     rowSpacing: Kirigami.Units.smallSpacing
@@ -701,7 +698,6 @@ PlasmaExtras.Representation {
                     PlasmaComponents3.Label {
                         visible: Plasmoid.configuration.showAckSignal && WifiMonitor.hasAckSignal
                         text: i18n("%1 dBm", WifiMonitor.ackSignalAvg)
-                        Layout.fillWidth: true
                     }
 
                     PlasmaComponents3.Label {
@@ -714,7 +710,6 @@ PlasmaExtras.Representation {
                     PlasmaComponents3.Label {
                         visible: Plasmoid.configuration.showAirtime
                         text: i18n("%1 ms", (WifiMonitor.txDuration / 1000).toFixed(0))
-                        Layout.fillWidth: true
                     }
                 }
             }
