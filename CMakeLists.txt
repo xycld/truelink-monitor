@@ -14,6 +14,7 @@ include(KDEInstallDirs)
 include(KDECMakeSettings)
 include(KDECompilerSettings NO_POLICY_SCOPE)
 include(ECMQmlModule)
+include(ECMPoQmTools)
 
 find_package(Qt6 6.6 REQUIRED COMPONENTS
     Core
@@ -73,3 +74,6 @@ plasma_install_package(package org.kde.plasma.truelinkmonitor)
 install(FILES org.kde.plasma.truelinkmonitor.metainfo.xml
     DESTINATION ${KDE_INSTALL_METAINFODIR}
 )
+
+# Install translations
+ki18n_install(po)

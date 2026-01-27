@@ -62,6 +62,29 @@ class WifiMonitor : public QObject
     // Last nl80211-related error seen by the monitor (empty when healthy).
     Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
 
+    Q_PROPERTY(qulonglong rxBytes READ rxBytes NOTIFY statsUpdated)
+    Q_PROPERTY(qulonglong txBytes READ txBytes NOTIFY statsUpdated)
+    Q_PROPERTY(quint32 rxPackets READ rxPackets NOTIFY statsUpdated)
+    Q_PROPERTY(quint32 txPackets READ txPackets NOTIFY statsUpdated)
+
+    Q_PROPERTY(quint32 txRetries READ txRetries NOTIFY statsUpdated)
+    Q_PROPERTY(quint32 txFailed READ txFailed NOTIFY statsUpdated)
+    Q_PROPERTY(quint32 rxDropped READ rxDropped NOTIFY statsUpdated)
+    Q_PROPERTY(quint32 beaconLoss READ beaconLoss NOTIFY statsUpdated)
+    Q_PROPERTY(qulonglong beaconRx READ beaconRx NOTIFY statsUpdated)
+    Q_PROPERTY(int beaconSignalAvg READ beaconSignalAvg NOTIFY statsUpdated)
+
+    Q_PROPERTY(quint32 connectedTime READ connectedTime NOTIFY statsUpdated)
+    Q_PROPERTY(quint32 inactiveTime READ inactiveTime NOTIFY statsUpdated)
+    Q_PROPERTY(quint32 expectedThroughput READ expectedThroughput NOTIFY statsUpdated)
+
+    Q_PROPERTY(int ackSignal READ ackSignal NOTIFY statsUpdated)
+    Q_PROPERTY(int ackSignalAvg READ ackSignalAvg NOTIFY statsUpdated)
+    Q_PROPERTY(bool hasAckSignal READ hasAckSignal NOTIFY statsUpdated)
+
+    Q_PROPERTY(qulonglong rxDuration READ rxDuration NOTIFY statsUpdated)
+    Q_PROPERTY(qulonglong txDuration READ txDuration NOTIFY statsUpdated)
+
 public:
     explicit WifiMonitor(QObject *parent = nullptr);
     ~WifiMonitor() override;
@@ -106,6 +129,29 @@ public:
     [[nodiscard]] int historySize() const;
     [[nodiscard]] int updateIntervalMs() const;
     [[nodiscard]] QString lastError() const;
+
+    [[nodiscard]] qulonglong rxBytes() const;
+    [[nodiscard]] qulonglong txBytes() const;
+    [[nodiscard]] quint32 rxPackets() const;
+    [[nodiscard]] quint32 txPackets() const;
+
+    [[nodiscard]] quint32 txRetries() const;
+    [[nodiscard]] quint32 txFailed() const;
+    [[nodiscard]] quint32 rxDropped() const;
+    [[nodiscard]] quint32 beaconLoss() const;
+    [[nodiscard]] qulonglong beaconRx() const;
+    [[nodiscard]] int beaconSignalAvg() const;
+
+    [[nodiscard]] quint32 connectedTime() const;
+    [[nodiscard]] quint32 inactiveTime() const;
+    [[nodiscard]] quint32 expectedThroughput() const;
+
+    [[nodiscard]] int ackSignal() const;
+    [[nodiscard]] int ackSignalAvg() const;
+    [[nodiscard]] bool hasAckSignal() const;
+
+    [[nodiscard]] qulonglong rxDuration() const;
+    [[nodiscard]] qulonglong txDuration() const;
 
 Q_SIGNALS:
     void connectionChanged();

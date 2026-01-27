@@ -1,6 +1,6 @@
 # Maintainer: xycld
 pkgname=plasma6-applet-truelink-monitor
-pkgver=1.0.10
+pkgver=1.1.1
 pkgrel=1
 pkgdesc="Real WiFi physical layer monitor for KDE Plasma 6 - shows RSSI dBm, PHY Rate, MCS, MIMO"
 arch=('x86_64')
@@ -13,12 +13,12 @@ depends=(
 )
 makedepends=(
     'cmake'
-    'extra-cmake-modules>=6.0'
+    'extra-cmake-modules'
     'qt6-base'
     'qt6-declarative'
-    'kf6-ki18n'
-    'kf6-plasma'
-    'kf6-networkmanager-qt'
+    'ki18n'
+    'libplasma'
+    'networkmanager-qt'
 )
 source=("$pkgname-$pkgver.tar.gz")
 sha256sums=('SKIP')

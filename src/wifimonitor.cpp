@@ -70,7 +70,6 @@ public:
     
     double smoothedTxRate = 0.0;
     double smoothedRxRate = 0.0;
-    int smoothedSignalDbm = 0;
     static constexpr double smoothingFactor = 0.3;
 
     static constexpr int updateIntervalMs = 1000;
@@ -96,7 +95,6 @@ public:
         stationInfo = Nl80211StationInfo{};
         smoothedTxRate = 0.0;
         smoothedRxRate = 0.0;
-        smoothedSignalDbm = 0;
         rxHistoryBuffer.clear();
         txHistoryBuffer.clear();
         maxRate = 100.0;
@@ -284,16 +282,13 @@ void WifiMonitor::updateNl80211Stats() {
         
         double newTx = newInfo.txBitrate / 10.0;
         double newRx = newInfo.rxBitrate / 10.0;
-        int newSignal = newInfo.signalDbm;
         
         if (d->smoothedTxRate == 0.0) {
             d->smoothedTxRate = newTx;
             d->smoothedRxRate = newRx;
-            d->smoothedSignalDbm = newSignal;
         } else {
             d->smoothedTxRate = d->smoothingFactor * newTx + (1.0 - d->smoothingFactor) * d->smoothedTxRate;
             d->smoothedRxRate = d->smoothingFactor * newRx + (1.0 - d->smoothingFactor) * d->smoothedRxRate;
-            d->smoothedSignalDbm = static_cast<int>(d->smoothingFactor * newSignal + (1.0 - d->smoothingFactor) * d->smoothedSignalDbm);
         }
         d->addToHistory(d->smoothedRxRate, d->smoothedTxRate);
     } else {
@@ -317,7 +312,7 @@ QString WifiMonitor::ssid() const { return d->cachedSsid; }
 QString WifiMonitor::bssid() const { return d->cachedBssid; }
 
 int WifiMonitor::signalDbm() const {
-    return d->smoothedSignalDbm;
+    return d->stationInfo.signalDbm;
 }
 
 int WifiMonitor::signalPercent() const {
@@ -338,11 +333,11 @@ QString WifiMonitor::signalQuality() const {
 }
 
 double WifiMonitor::txRate() const {
-    return d->smoothedTxRate;
+    return d->stationInfo.txBitrate / 10.0;
 }
 
 double WifiMonitor::rxRate() const {
-    return d->smoothedRxRate;
+    return d->stationInfo.rxBitrate / 10.0;
 }
 
 QString WifiMonitor::wifiGeneration() const {
@@ -455,4 +450,76 @@ int WifiMonitor::updateIntervalMs() const {
 
 QString WifiMonitor::lastError() const {
     return d->lastError;
+}
+
+qulonglong WifiMonitor::rxBytes() const {
+    return d->stationInfo.rxBytes;
+}
+
+qulonglong WifiMonitor::txBytes() const {
+    return d->stationInfo.txBytes;
+}
+
+quint32 WifiMonitor::rxPackets() const {
+    return d->stationInfo.rxPackets;
+}
+
+quint32 WifiMonitor::txPackets() const {
+    return d->stationInfo.txPackets;
+}
+
+quint32 WifiMonitor::txRetries() const {
+    return d->stationInfo.txRetries;
+}
+
+quint32 WifiMonitor::txFailed() const {
+    return d->stationInfo.txFailed;
+}
+
+quint32 WifiMonitor::rxDropped() const {
+    return d->stationInfo.rxDropMisc;
+}
+
+quint32 WifiMonitor::beaconLoss() const {
+    return d->stationInfo.beaconLoss;
+}
+
+qulonglong WifiMonitor::beaconRx() const {
+    return d->stationInfo.beaconRx;
+}
+
+int WifiMonitor::beaconSignalAvg() const {
+    return d->stationInfo.beaconSignalAvg;
+}
+
+quint32 WifiMonitor::connectedTime() const {
+    return d->stationInfo.connectedTime;
+}
+
+quint32 WifiMonitor::inactiveTime() const {
+    return d->stationInfo.inactiveTime;
+}
+
+quint32 WifiMonitor::expectedThroughput() const {
+    return d->stationInfo.expectedThroughput;
+}
+
+int WifiMonitor::ackSignal() const {
+    return d->stationInfo.ackSignal;
+}
+
+int WifiMonitor::ackSignalAvg() const {
+    return d->stationInfo.ackSignalAvg;
+}
+
+bool WifiMonitor::hasAckSignal() const {
+    return d->stationInfo.hasAckSignal;
+}
+
+qulonglong WifiMonitor::rxDuration() const {
+    return d->stationInfo.rxDuration;
+}
+
+qulonglong WifiMonitor::txDuration() const {
+    return d->stationInfo.txDuration;
 }

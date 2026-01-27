@@ -127,6 +127,83 @@ int stationInfoCallback(struct nl_msg* msg, void* arg) {
         }
     }
     
+    if (sinfo[NL80211_STA_INFO_RX_BYTES64]) {
+        info.rxBytes = nla_get_u64(sinfo[NL80211_STA_INFO_RX_BYTES64]);
+    } else if (sinfo[NL80211_STA_INFO_RX_BYTES]) {
+        info.rxBytes = nla_get_u32(sinfo[NL80211_STA_INFO_RX_BYTES]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_TX_BYTES64]) {
+        info.txBytes = nla_get_u64(sinfo[NL80211_STA_INFO_TX_BYTES64]);
+    } else if (sinfo[NL80211_STA_INFO_TX_BYTES]) {
+        info.txBytes = nla_get_u32(sinfo[NL80211_STA_INFO_TX_BYTES]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_RX_PACKETS]) {
+        info.rxPackets = nla_get_u32(sinfo[NL80211_STA_INFO_RX_PACKETS]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_TX_PACKETS]) {
+        info.txPackets = nla_get_u32(sinfo[NL80211_STA_INFO_TX_PACKETS]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_TX_RETRIES]) {
+        info.txRetries = nla_get_u32(sinfo[NL80211_STA_INFO_TX_RETRIES]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_TX_FAILED]) {
+        info.txFailed = nla_get_u32(sinfo[NL80211_STA_INFO_TX_FAILED]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_RX_DROP_MISC]) {
+        info.rxDropMisc = nla_get_u64(sinfo[NL80211_STA_INFO_RX_DROP_MISC]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_BEACON_LOSS]) {
+        info.beaconLoss = nla_get_u32(sinfo[NL80211_STA_INFO_BEACON_LOSS]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_BEACON_RX]) {
+        info.beaconRx = nla_get_u64(sinfo[NL80211_STA_INFO_BEACON_RX]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_BEACON_SIGNAL_AVG]) {
+        info.beaconSignalAvg = static_cast<int8_t>(nla_get_u8(sinfo[NL80211_STA_INFO_BEACON_SIGNAL_AVG]));
+    }
+    
+    if (sinfo[NL80211_STA_INFO_FCS_ERROR_COUNT]) {
+        info.fcsErrorCount = nla_get_u32(sinfo[NL80211_STA_INFO_FCS_ERROR_COUNT]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_CONNECTED_TIME]) {
+        info.connectedTime = nla_get_u32(sinfo[NL80211_STA_INFO_CONNECTED_TIME]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_INACTIVE_TIME]) {
+        info.inactiveTime = nla_get_u32(sinfo[NL80211_STA_INFO_INACTIVE_TIME]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_EXPECTED_THROUGHPUT]) {
+        info.expectedThroughput = nla_get_u32(sinfo[NL80211_STA_INFO_EXPECTED_THROUGHPUT]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_ACK_SIGNAL]) {
+        info.ackSignal = static_cast<int8_t>(nla_get_u8(sinfo[NL80211_STA_INFO_ACK_SIGNAL]));
+        info.hasAckSignal = true;
+    }
+    
+    if (sinfo[NL80211_STA_INFO_ACK_SIGNAL_AVG]) {
+        info.ackSignalAvg = static_cast<int8_t>(nla_get_u8(sinfo[NL80211_STA_INFO_ACK_SIGNAL_AVG]));
+    }
+    
+    if (sinfo[NL80211_STA_INFO_RX_DURATION]) {
+        info.rxDuration = nla_get_u64(sinfo[NL80211_STA_INFO_RX_DURATION]);
+    }
+    
+    if (sinfo[NL80211_STA_INFO_TX_DURATION]) {
+        info.txDuration = nla_get_u64(sinfo[NL80211_STA_INFO_TX_DURATION]);
+    }
+    
     return NL_OK;
 }
 

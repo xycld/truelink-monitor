@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+                          http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+
+    <group name="General">
+        <entry name="showLinkRateChart" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showSignalInfo" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showChannelInfo" type="Bool">
+            <default>true</default>
+        </entry>
+    </group>
+
+    <group name="RateInfo">
+        <entry name="showRxTxRate" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showMcs" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showMimo" type="Bool">
+            <default>true</default>
+        </entry>
+    </group>
+
+    <group name="Statistics">
+        <entry name="showTrafficStats" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="showLinkQuality" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="showBeaconStats" type="Bool">
+            <default>false</default>
+        </entry>
+    </group>
+
+    <group name="Connection">
+        <entry name="showConnectedTime" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showExpectedThroughput" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="showIpAddress" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showGateway" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showBssid" type="Bool">
+            <default>true</default>
+        </entry>
+    </group>
+
+    <group name="Advanced">
+        <entry name="showAckSignal" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="showAirtime" type="Bool">
+            <default>false</default>
+        </entry>
+    </group>
+</kcfg>

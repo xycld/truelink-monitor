@@ -1,0 +1,166 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_org.kde.plasma.truelinkmonitor\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-01-27 00:00+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: package/contents/ui/configGeneral.qml
+msgid "Display"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Link rate chart:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show RX/TX rate history graph"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Signal info:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show dBm and signal quality"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Channel info:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show channel number and width"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Rate Details"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "RX/TX rate:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show current link rates in Mbps"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "MCS index:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show modulation coding scheme"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "MIMO streams:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show spatial stream count"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Statistics"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Traffic stats:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show RX/TX bytes and packets"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Link quality:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show retries, failures, drops"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Beacon stats:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show beacon loss and signal"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Connection"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Connected time:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show connection duration"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Expected throughput:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show estimated throughput"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "IP address:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show local IP (masked by default)"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Gateway:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show gateway IP (masked by default)"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "BSSID:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show AP MAC (masked by default)"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Advanced"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "ACK signal:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show bidirectional link quality"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Airtime:"
+msgstr ""
+
+#: package/contents/ui/configGeneral.qml
+msgid "Show RX/TX duration"
+msgstr ""

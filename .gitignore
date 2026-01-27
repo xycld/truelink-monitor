@@ -5,3 +5,5 @@
 *.swp
 *~
 aur-plasma6-applet-truelink-monitor
+test/
+pkg-build/

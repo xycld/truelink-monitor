@@ -6,16 +6,17 @@
         "Icon": "network-wireless",
         "Authors": [
             {
-                "Name": "TrueLink"
+                "Name": "xycloud"
             }
         ],
         "Category": "System Information",
         "License": "MIT",
-        "Version": "1.0.10",
+        "Version": "1.1.1",
         "Website": "https://github.com/xycld/truelink-monitor"
     },
     "X-Plasma-API": "declarativeappletscript",
     "X-Plasma-API-Minimum-Version": "6.0",
     "X-Plasma-MainScript": "ui/main.qml",
-    "X-Plasma-Provides": ["org.kde.plasma.systemtray"]
+    "X-Plasma-Provides": ["org.kde.plasma.systemtray"],
+    "X-Plasma-ConfigModel": "config/config.qml"
 }
