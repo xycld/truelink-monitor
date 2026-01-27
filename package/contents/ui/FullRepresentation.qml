@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import QtQml
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.extras as PlasmaExtras
@@ -21,6 +22,65 @@ PlasmaExtras.Representation {
     collapseMarginsHint: true
 
     property bool isConnected: WifiMonitor.connected
+
+    // Shared width for left-side labels (column 1) across all sections
+    property real leftLabelWidth: Math.max(
+        rxLabelMetrics.width,
+        mcsLabelMetrics.width,
+        freqLabelMetrics.width,
+        rxBytesLabelMetrics.width,
+        rxPktsLabelMetrics.width,
+        retriesLabelMetrics.width,
+        droppedLabelMetrics.width,
+        ackSigLabelMetrics.width,
+        rxTimeLabelMetrics.width
+    ) + Kirigami.Units.smallSpacing
+
+    // Shared width for right-side labels (column 3) across all sections
+    // This ensures all right-side labels align to the same centerline
+    property real rightLabelWidth: Math.max(
+        txLabelMetrics.width,
+        mimoLabelMetrics.width,
+        securityLabelMetrics.width,
+        txBytesLabelMetrics.width,
+        txPktsLabelMetrics.width,
+        failedLabelMetrics.width,
+        bcnLossLabelMetrics.width,
+        ackAvgLabelMetrics.width,
+        txTimeLabelMetrics.width
+    ) + Kirigami.Units.smallSpacing
+
+    // Fixed width for value columns (column 2 and 4) to ensure consistent centerline
+    // Calculate available width after labels and spacing, then split evenly
+    property real valueColumnWidth: {
+        var totalWidth = fullRoot.width - 2 * Kirigami.Units.smallSpacing  // margins
+        var labelsWidth = leftLabelWidth + rightLabelWidth
+        var spacing = 3 * Kirigami.Units.largeSpacing  // 3 column gaps
+        var availableForValues = totalWidth - labelsWidth - spacing
+        return Math.max(availableForValues / 2, Kirigami.Units.gridUnit * 4)
+    }
+
+    // TextMetrics for all left-side labels (column 1)
+    TextMetrics { id: rxLabelMetrics; text: i18nc("Receive rate label", "RX"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: mcsLabelMetrics; text: i18nc("Modulation coding scheme", "MCS"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: freqLabelMetrics; text: i18nc("Radio frequency", "Freq"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: rxBytesLabelMetrics; text: i18nc("Received bytes", "RX Bytes"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: rxPktsLabelMetrics; text: i18nc("Received packets", "RX Pkts"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: retriesLabelMetrics; text: i18nc("Transmission retries", "Retries"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: droppedLabelMetrics; text: i18nc("Dropped packets", "Dropped"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: ackSigLabelMetrics; text: i18nc("ACK signal strength", "ACK Sig"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: rxTimeLabelMetrics; text: i18nc("Receive duration", "RX Time"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+
+    // TextMetrics for all right-side labels (column 3)
+    TextMetrics { id: txLabelMetrics; text: i18nc("Transmit rate label", "TX"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: mimoLabelMetrics; text: i18nc("MIMO spatial streams", "MIMO"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: securityLabelMetrics; text: i18nc("Security protocol", "Security"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: txBytesLabelMetrics; text: i18nc("Transmitted bytes", "TX Bytes"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: txPktsLabelMetrics; text: i18nc("Transmitted packets", "TX Pkts"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: failedLabelMetrics; text: i18nc("Transmission failures", "Failed"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: bcnLossLabelMetrics; text: i18nc("Beacon loss count", "Bcn Loss"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: ackAvgLabelMetrics; text: i18nc("ACK signal average", "ACK Avg"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
+    TextMetrics { id: txTimeLabelMetrics; text: i18nc("Transmit duration", "TX Time"); font.pointSize: Kirigami.Theme.smallFont.pointSize }
 
     function formatBytes(bytes: real): string {
         var b = bytes || 0;
@@ -282,102 +342,99 @@ PlasmaExtras.Representation {
                 Layout.fillWidth: true
             }
 
-            RowLayout {
+            GridLayout {
                 visible: fullRoot.isConnected && (Plasmoid.configuration.showRxTxRate || Plasmoid.configuration.showMcs || Plasmoid.configuration.showMimo)
                 Layout.fillWidth: true
                 Layout.margins: Kirigami.Units.smallSpacing
-                spacing: Kirigami.Units.largeSpacing
+                columns: 4
+                columnSpacing: Kirigami.Units.largeSpacing
+                rowSpacing: Kirigami.Units.smallSpacing
 
-                // Left column (fixed 50% width)
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns: 2
-                    columnSpacing: Kirigami.Units.smallSpacing
-                    rowSpacing: Kirigami.Units.smallSpacing
-
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showRxTxRate
-                        text: i18nc("Receive rate label", "RX")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
-
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showRxTxRate
-                        text: i18n("%1 Mbps", WifiMonitor.rxRate.toFixed(1))
-                        font.bold: true
-                        Layout.fillWidth: true
-                    }
-
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showMcs
-                        text: i18nc("Modulation coding scheme", "MCS")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
-
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showMcs
-                        text: WifiMonitor.mcsIndex.toString()
-                        font.bold: true
-                        Layout.fillWidth: true
-                    }
-
-                    PlasmaComponents3.Label {
-                        text: i18nc("Radio frequency", "Freq")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
-
-                    PlasmaComponents3.Label {
-                        text: i18n("%1 MHz", WifiMonitor.frequency)
-                        Layout.fillWidth: true
-                    }
+                // Row 1: RX / TX rates
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showRxTxRate
+                    text: i18nc("Receive rate label", "RX")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.leftLabelWidth
                 }
 
-                // Right column (fixed 50% width)
-                GridLayout {
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showRxTxRate
+                    text: i18n("%1 Mbps", WifiMonitor.rxRate.toFixed(1))
+                    font.bold: true
+                    Layout.preferredWidth: fullRoot.valueColumnWidth
+                }
+
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showRxTxRate
+                    text: i18nc("Transmit rate label", "TX")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.rightLabelWidth
+                }
+
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showRxTxRate
+                    text: i18n("%1 Mbps", WifiMonitor.txRate.toFixed(1))
+                    font.bold: true
                     Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                    columns: 2
-                    columnSpacing: Kirigami.Units.smallSpacing
-                    rowSpacing: Kirigami.Units.smallSpacing
+                }
 
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showRxTxRate
-                        text: i18nc("Transmit rate label", "TX")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
+                // Row 2: MCS / MIMO
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showMcs
+                    text: i18nc("Modulation coding scheme", "MCS")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.leftLabelWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showRxTxRate
-                        text: i18n("%1 Mbps", WifiMonitor.txRate.toFixed(1))
-                        font.bold: true
-                    }
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showMcs
+                    text: WifiMonitor.mcsIndex.toString()
+                    font.bold: true
+                    Layout.preferredWidth: fullRoot.valueColumnWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showMimo
-                        text: i18nc("MIMO spatial streams", "MIMO")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showMimo
+                    text: i18nc("MIMO spatial streams", "MIMO")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.rightLabelWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showMimo
-                        text: WifiMonitor.mimoStreams > 0 ? i18n("%1x%1", WifiMonitor.mimoStreams) : "N/A"
-                        font.bold: true
-                    }
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showMimo
+                    text: WifiMonitor.mimoStreams > 0 ? i18n("%1x%1", WifiMonitor.mimoStreams) : "N/A"
+                    font.bold: true
+                    Layout.fillWidth: true
+                }
 
-                    PlasmaComponents3.Label {
-                        text: i18nc("Security protocol", "Security")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
+                // Row 3: Freq / Security
+                PlasmaComponents3.Label {
+                    text: i18nc("Radio frequency", "Freq")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.leftLabelWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        text: WifiMonitor.security
-                    }
+                PlasmaComponents3.Label {
+                    text: i18n("%1 MHz", WifiMonitor.frequency)
+                    Layout.preferredWidth: fullRoot.valueColumnWidth
+                }
+
+                PlasmaComponents3.Label {
+                    text: i18nc("Security protocol", "Security")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.rightLabelWidth
+                }
+
+                PlasmaComponents3.Label {
+                    text: WifiMonitor.security
+                    Layout.fillWidth: true
                 }
             }
 
@@ -387,69 +444,62 @@ PlasmaExtras.Representation {
                 Layout.fillWidth: true
             }
 
-            RowLayout {
+            GridLayout {
                 visible: fullRoot.isConnected && Plasmoid.configuration.showTrafficStats
                 Layout.fillWidth: true
                 Layout.margins: Kirigami.Units.smallSpacing
-                spacing: Kirigami.Units.largeSpacing
+                columns: 4
+                columnSpacing: Kirigami.Units.largeSpacing
+                rowSpacing: Kirigami.Units.smallSpacing
 
-                // RX column (fixed 50% width)
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns: 2
-                    columnSpacing: Kirigami.Units.smallSpacing
-                    rowSpacing: Kirigami.Units.smallSpacing
-
-                    PlasmaComponents3.Label {
-                        text: i18nc("Received bytes", "RX Bytes")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
-
-                    PlasmaComponents3.Label {
-                        text: fullRoot.formatBytes(WifiMonitor.rxBytes)
-                        Layout.fillWidth: true
-                    }
-
-                    PlasmaComponents3.Label {
-                        text: i18nc("Received packets", "RX Pkts")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
-
-                    PlasmaComponents3.Label {
-                        text: fullRoot.formatNumber(WifiMonitor.rxPackets)
-                        Layout.fillWidth: true
-                    }
+                // Row 1: RX Bytes / TX Bytes
+                PlasmaComponents3.Label {
+                    text: i18nc("Received bytes", "RX Bytes")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.leftLabelWidth
                 }
 
-                // TX column (fixed 50% width)
-                GridLayout {
+                PlasmaComponents3.Label {
+                    text: fullRoot.formatBytes(WifiMonitor.rxBytes)
+                    Layout.preferredWidth: fullRoot.valueColumnWidth
+                }
+
+                PlasmaComponents3.Label {
+                    text: i18nc("Transmitted bytes", "TX Bytes")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.rightLabelWidth
+                }
+
+                PlasmaComponents3.Label {
+                    text: fullRoot.formatBytes(WifiMonitor.txBytes)
                     Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                    columns: 2
-                    columnSpacing: Kirigami.Units.smallSpacing
-                    rowSpacing: Kirigami.Units.smallSpacing
+                }
 
-                    PlasmaComponents3.Label {
-                        text: i18nc("Transmitted bytes", "TX Bytes")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
+                // Row 2: RX Pkts / TX Pkts
+                PlasmaComponents3.Label {
+                    text: i18nc("Received packets", "RX Pkts")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.leftLabelWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        text: fullRoot.formatBytes(WifiMonitor.txBytes)
-                    }
+                PlasmaComponents3.Label {
+                    text: fullRoot.formatNumber(WifiMonitor.rxPackets)
+                    Layout.preferredWidth: fullRoot.valueColumnWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        text: i18nc("Transmitted packets", "TX Pkts")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
+                PlasmaComponents3.Label {
+                    text: i18nc("Transmitted packets", "TX Pkts")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.rightLabelWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        text: fullRoot.formatNumber(WifiMonitor.txPackets)
-                    }
+                PlasmaComponents3.Label {
+                    text: fullRoot.formatNumber(WifiMonitor.txPackets)
+                    Layout.fillWidth: true
                 }
             }
 
@@ -459,74 +509,66 @@ PlasmaExtras.Representation {
                 Layout.fillWidth: true
             }
 
-            RowLayout {
+            GridLayout {
                 visible: fullRoot.isConnected && Plasmoid.configuration.showLinkQuality
                 Layout.fillWidth: true
                 Layout.margins: Kirigami.Units.smallSpacing
-                spacing: Kirigami.Units.largeSpacing
+                columns: 4
+                columnSpacing: Kirigami.Units.largeSpacing
+                rowSpacing: Kirigami.Units.smallSpacing
 
-                // Left column (fixed 50% width)
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns: 2
-                    columnSpacing: Kirigami.Units.smallSpacing
-                    rowSpacing: Kirigami.Units.smallSpacing
-
-                    PlasmaComponents3.Label {
-                        text: i18nc("Transmission retries", "Retries")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
-
-                    PlasmaComponents3.Label {
-                        text: fullRoot.formatNumber(WifiMonitor.txRetries)
-                        Layout.fillWidth: true
-                    }
-
-                    PlasmaComponents3.Label {
-                        text: i18nc("Dropped packets", "Dropped")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
-
-                    PlasmaComponents3.Label {
-                        text: fullRoot.formatNumber(WifiMonitor.rxDropped)
-                        color: (WifiMonitor.rxDropped || 0) > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
-                        Layout.fillWidth: true
-                    }
+                // Row 1: Retries / Failed
+                PlasmaComponents3.Label {
+                    text: i18nc("Transmission retries", "Retries")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.leftLabelWidth
                 }
 
-                // Right column (fixed 50% width)
-                GridLayout {
+                PlasmaComponents3.Label {
+                    text: fullRoot.formatNumber(WifiMonitor.txRetries)
+                    Layout.preferredWidth: fullRoot.valueColumnWidth
+                }
+
+                PlasmaComponents3.Label {
+                    text: i18nc("Transmission failures", "Failed")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.rightLabelWidth
+                }
+
+                PlasmaComponents3.Label {
+                    text: fullRoot.formatNumber(WifiMonitor.txFailed)
+                    color: (WifiMonitor.txFailed || 0) > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
                     Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                    columns: 2
-                    columnSpacing: Kirigami.Units.smallSpacing
-                    rowSpacing: Kirigami.Units.smallSpacing
+                }
 
-                    PlasmaComponents3.Label {
-                        text: i18nc("Transmission failures", "Failed")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
+                // Row 2: Dropped / Bcn Loss
+                PlasmaComponents3.Label {
+                    text: i18nc("Dropped packets", "Dropped")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.leftLabelWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        text: fullRoot.formatNumber(WifiMonitor.txFailed)
-                        color: (WifiMonitor.txFailed || 0) > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
-                    }
+                PlasmaComponents3.Label {
+                    text: fullRoot.formatNumber(WifiMonitor.rxDropped)
+                    color: (WifiMonitor.rxDropped || 0) > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
+                    Layout.preferredWidth: fullRoot.valueColumnWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showBeaconStats
-                        text: i18nc("Beacon loss count", "Bcn Loss")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
+                PlasmaComponents3.Label {
+                    opacity: Plasmoid.configuration.showBeaconStats ? 0.6 : 0
+                    text: i18nc("Beacon loss count", "Bcn Loss")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    Layout.preferredWidth: fullRoot.rightLabelWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showBeaconStats
-                        text: fullRoot.formatNumber(WifiMonitor.beaconLoss)
-                        color: (WifiMonitor.beaconLoss || 0) > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
-                    }
+                PlasmaComponents3.Label {
+                    opacity: Plasmoid.configuration.showBeaconStats ? 1 : 0
+                    text: fullRoot.formatNumber(WifiMonitor.beaconLoss)
+                    color: (WifiMonitor.beaconLoss || 0) > 0 ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
+                    Layout.fillWidth: true
                 }
             }
 
@@ -640,77 +682,70 @@ PlasmaExtras.Representation {
                 Layout.fillWidth: true
             }
 
-            RowLayout {
+            GridLayout {
                 visible: fullRoot.isConnected && (Plasmoid.configuration.showAckSignal || Plasmoid.configuration.showAirtime)
                 Layout.fillWidth: true
                 Layout.margins: Kirigami.Units.smallSpacing
-                spacing: Kirigami.Units.largeSpacing
+                columns: 4
+                columnSpacing: Kirigami.Units.largeSpacing
+                rowSpacing: Kirigami.Units.smallSpacing
 
-                // Left column (fixed 50% width)
-                GridLayout {
-                    Layout.fillWidth: true
-                    columns: 2
-                    columnSpacing: Kirigami.Units.smallSpacing
-                    rowSpacing: Kirigami.Units.smallSpacing
-
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showAckSignal && WifiMonitor.hasAckSignal
-                        text: i18nc("ACK signal strength", "ACK Sig")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
-
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showAckSignal && WifiMonitor.hasAckSignal
-                        text: i18n("%1 dBm", WifiMonitor.ackSignal)
-                        Layout.fillWidth: true
-                    }
-
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showAirtime
-                        text: i18nc("Receive duration", "RX Time")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
-
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showAirtime
-                        text: i18n("%1 ms", (WifiMonitor.rxDuration / 1000).toFixed(0))
-                        Layout.fillWidth: true
-                    }
+                // Row 1: ACK Sig / ACK Avg
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showAckSignal && WifiMonitor.hasAckSignal
+                    text: i18nc("ACK signal strength", "ACK Sig")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.leftLabelWidth
                 }
 
-                // Right column (fixed 50% width)
-                GridLayout {
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showAckSignal && WifiMonitor.hasAckSignal
+                    text: i18n("%1 dBm", WifiMonitor.ackSignal)
+                    Layout.preferredWidth: fullRoot.valueColumnWidth
+                }
+
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showAckSignal && WifiMonitor.hasAckSignal
+                    text: i18nc("ACK signal average", "ACK Avg")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.rightLabelWidth
+                }
+
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showAckSignal && WifiMonitor.hasAckSignal
+                    text: i18n("%1 dBm", WifiMonitor.ackSignalAvg)
                     Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-                    columns: 2
-                    columnSpacing: Kirigami.Units.smallSpacing
-                    rowSpacing: Kirigami.Units.smallSpacing
+                }
 
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showAckSignal && WifiMonitor.hasAckSignal
-                        text: i18nc("ACK signal average", "ACK Avg")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
+                // Row 2: RX Time / TX Time
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showAirtime
+                    text: i18nc("Receive duration", "RX Time")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.leftLabelWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showAckSignal && WifiMonitor.hasAckSignal
-                        text: i18n("%1 dBm", WifiMonitor.ackSignalAvg)
-                    }
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showAirtime
+                    text: i18n("%1 ms", (WifiMonitor.rxDuration / 1000).toFixed(0))
+                    Layout.preferredWidth: fullRoot.valueColumnWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showAirtime
-                        text: i18nc("Transmit duration", "TX Time")
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.6
-                    }
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showAirtime
+                    text: i18nc("Transmit duration", "TX Time")
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                    Layout.preferredWidth: fullRoot.rightLabelWidth
+                }
 
-                    PlasmaComponents3.Label {
-                        visible: Plasmoid.configuration.showAirtime
-                        text: i18n("%1 ms", (WifiMonitor.txDuration / 1000).toFixed(0))
-                    }
+                PlasmaComponents3.Label {
+                    visible: Plasmoid.configuration.showAirtime
+                    text: i18n("%1 ms", (WifiMonitor.txDuration / 1000).toFixed(0))
+                    Layout.fillWidth: true
                 }
             }
         }
