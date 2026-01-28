@@ -757,6 +757,96 @@ PlasmaExtras.Representation {
                     Layout.fillWidth: true
                 }
             }
+
+            // DEBUG SECTION - Remove in production
+            Kirigami.Separator {
+                Layout.fillWidth: true
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.margins: Kirigami.Units.smallSpacing
+                spacing: Kirigami.Units.smallSpacing
+
+                PlasmaComponents3.Label {
+                    text: "=== DEBUG INFO ==="
+                    font.bold: true
+                    color: "red"
+                }
+
+                PlasmaComponents3.Label {
+                    id: debugLabel
+                    text: "Test patterns:"
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                }
+
+                // Test different asterisk patterns
+                RowLayout {
+                    spacing: Kirigami.Units.largeSpacing
+
+                    ColumnLayout {
+                        PlasmaComponents3.Label { text: "Default font:" ; font.pointSize: Kirigami.Theme.smallFont.pointSize; opacity: 0.6 }
+                        PlasmaComponents3.Label { text: "** (2)"; textFormat: Text.PlainText }
+                        PlasmaComponents3.Label { text: "*** (3)"; textFormat: Text.PlainText }
+                        PlasmaComponents3.Label { text: "**** (4)"; textFormat: Text.PlainText }
+                        PlasmaComponents3.Label { text: "**:**:**"; textFormat: Text.PlainText }
+                    }
+
+                    ColumnLayout {
+                        PlasmaComponents3.Label { text: "Monospace:" ; font.pointSize: Kirigami.Theme.smallFont.pointSize; opacity: 0.6 }
+                        PlasmaComponents3.Label { text: "** (2)"; font.family: "monospace"; textFormat: Text.PlainText }
+                        PlasmaComponents3.Label { text: "*** (3)"; font.family: "monospace"; textFormat: Text.PlainText }
+                        PlasmaComponents3.Label { text: "**** (4)"; font.family: "monospace"; textFormat: Text.PlainText }
+                        PlasmaComponents3.Label { text: "**:**:**"; font.family: "monospace"; textFormat: Text.PlainText }
+                    }
+
+                    ColumnLayout {
+                        PlasmaComponents3.Label { text: "Mono+NoLiga:" ; font.pointSize: Kirigami.Theme.smallFont.pointSize; opacity: 0.6 }
+                        PlasmaComponents3.Label { text: "** (2)"; font.family: "monospace"; font.features: { "liga": 0 }; textFormat: Text.PlainText }
+                        PlasmaComponents3.Label { text: "*** (3)"; font.family: "monospace"; font.features: { "liga": 0 }; textFormat: Text.PlainText }
+                        PlasmaComponents3.Label { text: "**** (4)"; font.family: "monospace"; font.features: { "liga": 0 }; textFormat: Text.PlainText }
+                        PlasmaComponents3.Label { text: "**:**:**"; font.family: "monospace"; font.features: { "liga": 0 }; textFormat: Text.PlainText }
+                    }
+                }
+
+                // Font info
+                PlasmaComponents3.Label {
+                    id: fontInfoLabel
+                    property font testFont: Qt.font({ family: "monospace" })
+                    text: "Monospace resolves to: " + testFont.family
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    wrapMode: Text.Wrap
+                    Layout.fillWidth: true
+                }
+
+                PlasmaComponents3.Label {
+                    text: "Default font: " + Kirigami.Theme.defaultFont.family
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                }
+
+                PlasmaComponents3.Label {
+                    text: "Small font: " + Kirigami.Theme.smallFont.family + " @ " + Kirigami.Theme.smallFont.pointSize + "pt"
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                }
+
+                PlasmaComponents3.Label {
+                    text: "Qt version: " + Qt.version + " | Platform: " + Qt.platform.os
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                }
+
+                // No textFormat test
+                PlasmaComponents3.Label {
+                    text: "Without textFormat:"
+                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    opacity: 0.6
+                }
+
+                RowLayout {
+                    PlasmaComponents3.Label { text: "***"; font.family: "monospace" }
+                    PlasmaComponents3.Label { text: " | " }
+                    PlasmaComponents3.Label { text: "**:**:**"; font.family: "monospace" }
+                }
+            }
         }
     }
 }
