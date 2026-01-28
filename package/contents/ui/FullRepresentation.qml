@@ -106,9 +106,9 @@ PlasmaExtras.Representation {
 
     function formatNumber(num: real): string {
         var n = num || 0;
-        if (n >= 1000000000) return i18n("%1M", (n / 1000000).toFixed(1));
-        if (n >= 1000000) return i18n("%1K", (n / 1000).toFixed(1));
-        return n.toString();
+        if (n >= 1000000000) return i18n("%1M", (n / 1000000).toLocaleString(Qt.locale(), 'f', 1));
+        if (n >= 1000000) return i18n("%1K", (n / 1000).toLocaleString(Qt.locale(), 'f', 1));
+        return Math.floor(n).toLocaleString(Qt.locale(), 'f', 0);
     }
 
     PlasmaComponents3.ScrollView {
