@@ -119,7 +119,7 @@ PlasmaExtras.Representation {
 
         ColumnLayout {
             id: mainColumn
-            width: parent.width
+            width: parent.width - (parent.PlasmaComponents3.ScrollBar.vertical.visible ? parent.PlasmaComponents3.ScrollBar.vertical.width : 0)
             spacing: Kirigami.Units.smallSpacing
 
             // Disconnected placeholder
@@ -622,6 +622,7 @@ PlasmaExtras.Representation {
                     visible: Plasmoid.configuration.showIpAddress
                     property bool revealed: false
                     text: revealed ? (WifiMonitor.ipAddress || i18n("N/A")) : fullRoot.maskIp(WifiMonitor.ipAddress)
+                    textFormat: Text.PlainText
                     font.family: "monospace"
                     Layout.fillWidth: true
 
@@ -644,6 +645,7 @@ PlasmaExtras.Representation {
                     visible: Plasmoid.configuration.showGateway
                     property bool revealed: false
                     text: revealed ? (WifiMonitor.gateway || i18n("N/A")) : fullRoot.maskIp(WifiMonitor.gateway)
+                    textFormat: Text.PlainText
                     font.family: "monospace"
 
                     MouseArea {
@@ -665,6 +667,7 @@ PlasmaExtras.Representation {
                     visible: Plasmoid.configuration.showBssid
                     property bool revealed: false
                     text: revealed ? WifiMonitor.bssid : "**:**:**:**:**:**"
+                    textFormat: Text.PlainText
                     font.family: "monospace"
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
 

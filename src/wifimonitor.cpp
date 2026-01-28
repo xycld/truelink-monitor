@@ -396,28 +396,12 @@ QString WifiMonitor::gateway() const { return d->cachedGateway; }
 
 QString WifiMonitor::statusColor() const {
     if (!d->isConnected) return QStringLiteral("#808080");
-    
-    auto mode = d->stationInfo.rxMode;
-    int width = channelWidth();
+
     int dbm = signalDbm();
-    
-    bool isHE = (mode == Nl80211StationInfo::WifiMode::HE || 
-                 mode == Nl80211StationInfo::WifiMode::EHT);
-    bool isWide = (width >= 160);
-    bool strongSignal = (dbm > -60);
-    
-    if (isHE && isWide && strongSignal) {
-        return QStringLiteral("#4CAF50");
-    }
-    
-    bool isVHT = (mode == Nl80211StationInfo::WifiMode::VHT);
-    bool mediumSignal = (dbm > -70);
-    
-    if ((isVHT || isHE) && mediumSignal) {
-        return QStringLiteral("#FFC107");
-    }
-    
-    return QStringLiteral("#F44336");
+    if (dbm >= -60) return QStringLiteral("#4CAF50");  // Excellent/Good
+    if (dbm >= -70) return QStringLiteral("#FFC107");  // Fair
+    if (dbm >= -80) return QStringLiteral("#FF9800");  // Weak
+    return QStringLiteral("#F44336");                  // Poor
 }
 
 QVariantList WifiMonitor::rxHistory() const {
