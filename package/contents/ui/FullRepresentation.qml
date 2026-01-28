@@ -722,9 +722,9 @@ PlasmaExtras.Representation {
                     Layout.fillWidth: true
                 }
 
-                // Row 2: RX Time / TX Time
+                // Row 2: RX Time / TX Time (hidden if driver doesn't support)
                 PlasmaComponents3.Label {
-                    visible: Plasmoid.configuration.showAirtime
+                    visible: Plasmoid.configuration.showAirtime && (WifiMonitor.rxDuration > 0 || WifiMonitor.txDuration > 0)
                     text: i18nc("Receive duration", "RX Time")
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     opacity: 0.6
@@ -732,13 +732,13 @@ PlasmaExtras.Representation {
                 }
 
                 PlasmaComponents3.Label {
-                    visible: Plasmoid.configuration.showAirtime
+                    visible: Plasmoid.configuration.showAirtime && (WifiMonitor.rxDuration > 0 || WifiMonitor.txDuration > 0)
                     text: i18n("%1 ms", (WifiMonitor.rxDuration / 1000).toFixed(0))
                     Layout.preferredWidth: fullRoot.valueColumnWidth
                 }
 
                 PlasmaComponents3.Label {
-                    visible: Plasmoid.configuration.showAirtime
+                    visible: Plasmoid.configuration.showAirtime && (WifiMonitor.rxDuration > 0 || WifiMonitor.txDuration > 0)
                     text: i18nc("Transmit duration", "TX Time")
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     opacity: 0.6
@@ -746,7 +746,7 @@ PlasmaExtras.Representation {
                 }
 
                 PlasmaComponents3.Label {
-                    visible: Plasmoid.configuration.showAirtime
+                    visible: Plasmoid.configuration.showAirtime && (WifiMonitor.rxDuration > 0 || WifiMonitor.txDuration > 0)
                     text: i18n("%1 ms", (WifiMonitor.txDuration / 1000).toFixed(0))
                     Layout.fillWidth: true
                 }
