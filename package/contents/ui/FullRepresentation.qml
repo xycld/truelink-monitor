@@ -627,6 +627,7 @@ PlasmaExtras.Representation {
                     text: revealed ? (WifiMonitor.ipAddress || i18n("N/A")) : fullRoot.maskIp(WifiMonitor.ipAddress)
                     textFormat: Text.PlainText
                     font.family: "monospace"
+                    font.features: { "liga": 0, "clig": 0, "dlig": 0, "hlig": 0 }
                     Layout.fillWidth: true
 
                     MouseArea {
@@ -650,6 +651,7 @@ PlasmaExtras.Representation {
                     text: revealed ? (WifiMonitor.gateway || i18n("N/A")) : fullRoot.maskIp(WifiMonitor.gateway)
                     textFormat: Text.PlainText
                     font.family: "monospace"
+                    font.features: { "liga": 0, "clig": 0, "dlig": 0, "hlig": 0 }
 
                     MouseArea {
                         anchors.fill: parent
@@ -673,6 +675,7 @@ PlasmaExtras.Representation {
                     textFormat: Text.PlainText
                     font.family: "monospace"
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
+                    font.features: { "liga": 0, "clig": 0, "dlig": 0, "hlig": 0 }
 
                     MouseArea {
                         anchors.fill: parent
