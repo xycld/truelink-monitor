@@ -112,14 +112,15 @@ PlasmaExtras.Representation {
     }
 
     PlasmaComponents3.ScrollView {
+        id: scrollView
         anchors.fill: parent
         anchors.margins: Kirigami.Units.smallSpacing
-        contentWidth: availableWidth
+        contentWidth: availableWidth - contentItem.leftMargin - contentItem.rightMargin
         PlasmaComponents3.ScrollBar.horizontal.policy: PlasmaComponents3.ScrollBar.AlwaysOff
 
         ColumnLayout {
             id: mainColumn
-            width: parent.width - (parent.PlasmaComponents3.ScrollBar.vertical.visible ? parent.PlasmaComponents3.ScrollBar.vertical.width : 0)
+            width: scrollView.availableWidth
             spacing: Kirigami.Units.smallSpacing
 
             // Disconnected placeholder
@@ -141,6 +142,7 @@ PlasmaExtras.Representation {
 
                 Kirigami.Heading {
                     text: WifiMonitor.ssid
+                    textFormat: Text.PlainText
                     level: 4
                     elide: Text.ElideRight
                     Layout.fillWidth: true
@@ -434,6 +436,7 @@ PlasmaExtras.Representation {
 
                 PlasmaComponents3.Label {
                     text: WifiMonitor.security
+                    textFormat: Text.PlainText
                     Layout.fillWidth: true
                 }
             }
