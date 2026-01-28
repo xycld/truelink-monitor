@@ -34,6 +34,23 @@ TrueLink Monitor 是一个 KDE Plasma 6 小部件，通过 nl80211/libnl 直接�
 paru -S plasma6-applet-truelink-monitor
 ```
 
+### NixOS / Nix Flake
+
+```bash
+# 从 GitHub 直接安装
+nix profile install github:xycld/truelink-monitor
+
+# 或添加到 flake.nix inputs
+{
+  inputs.truelink-monitor.url = "github:xycld/truelink-monitor";
+}
+
+# 然后在 configuration.nix 中
+environment.systemPackages = [
+  inputs.truelink-monitor.packages.${pkgs.system}.default
+];
+```
+
 ### 手动编译
 
 ```bash

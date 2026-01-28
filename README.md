@@ -37,6 +37,23 @@ some systems (e.g. CAP_NET_ADMIN), depending on kernel/distro policy.
 paru -S plasma6-applet-truelink-monitor
 ```
 
+### NixOS / Nix Flake
+
+```bash
+# Direct install from GitHub
+nix profile install github:xycld/truelink-monitor
+
+# Or add to your flake.nix inputs
+{
+  inputs.truelink-monitor.url = "github:xycld/truelink-monitor";
+}
+
+# Then in configuration.nix
+environment.systemPackages = [
+  inputs.truelink-monitor.packages.${pkgs.system}.default
+];
+```
+
 ### Manual Build
 
 ```bash
