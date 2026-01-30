@@ -8,6 +8,7 @@ KCM.SimpleKCM {
     id: root
 
     property alias cfg_showLinkRateChart: showLinkRateChart.checked
+    property alias cfg_chartHeight: chartHeight.value
     property alias cfg_showSignalInfo: showSignalInfo.checked
     property alias cfg_showChannelInfo: showChannelInfo.checked
 
@@ -38,6 +39,14 @@ KCM.SimpleKCM {
             id: showLinkRateChart
             Kirigami.FormData.label: i18n("Link rate chart:")
             text: i18n("Show RX/TX rate history graph")
+        }
+
+        QQC2.SpinBox {
+            id: chartHeight
+            Kirigami.FormData.label: i18n("Chart height:")
+            from: 3
+            to: 15
+            enabled: showLinkRateChart.checked
         }
 
         QQC2.CheckBox {

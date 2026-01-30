@@ -9,6 +9,11 @@
         <entry name="showLinkRateChart" type="Bool">
             <default>true</default>
         </entry>
+        <entry name="chartHeight" type="Int">
+            <default>5</default>
+            <min>3</min>
+            <max>15</max>
+        </entry>
         <entry name="showSignalInfo" type="Bool">
             <default>true</default>
         </entry>

@@ -212,7 +212,7 @@ PlasmaExtras.Representation {
             ColumnLayout {
                 visible: fullRoot.isConnected && Plasmoid.configuration.showLinkRateChart
                 Layout.fillWidth: true
-                Layout.preferredHeight: Kirigami.Units.gridUnit * 5
+                Layout.preferredHeight: Kirigami.Units.gridUnit * Plasmoid.configuration.chartHeight
                 Layout.margins: Kirigami.Units.smallSpacing
                 spacing: Kirigami.Units.smallSpacing
 
