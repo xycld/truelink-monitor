@@ -66,6 +66,13 @@ PlasmoidItem {
     // Context menu actions
     Plasmoid.contextualActions: [
         PlasmaCore.Action {
+            text: i18n("Configure Widget...")
+            icon.name: "configure"
+            onTriggered: {
+                Plasmoid.action("configure").trigger()
+            }
+        },
+        PlasmaCore.Action {
             text: i18n("Open Network Settings")
             icon.name: "preferences-system-network"
             onTriggered: {
