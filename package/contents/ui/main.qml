@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import org.kde.kcmutils as KCMUtils
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents3
 import org.kde.plasma.core as PlasmaCore
@@ -69,14 +70,20 @@ PlasmoidItem {
             text: i18n("Configure Widget...")
             icon.name: "configure"
             onTriggered: {
-                Plasmoid.action("configure").trigger()
+                var configureAction = Plasmoid.internalAction("configure");
+                if (!configureAction)
+                    configureAction = Plasmoid.action("configure");
+                if (configureAction)
+                    configureAction.trigger();
+                else
+                    Plasmoid.userConfiguring = true;
             }
         },
         PlasmaCore.Action {
             text: i18n("Open Network Settings")
             icon.name: "preferences-system-network"
             onTriggered: {
-                Qt.openUrlExternally("kcm:kcm_networkmanagement");
+                KCMUtils.KCMLauncher.openSystemSettings("kcm_networkmanagement");
             }
         },
         PlasmaCore.Action {

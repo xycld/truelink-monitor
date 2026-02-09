@@ -632,6 +632,7 @@ PlasmaExtras.Representation {
 
                     MouseArea {
                         anchors.fill: parent
+                        acceptedButtons: Qt.LeftButton
                         cursorShape: Qt.PointingHandCursor
                         onClicked: ipLabel.revealed = !ipLabel.revealed
                     }
@@ -655,6 +656,7 @@ PlasmaExtras.Representation {
 
                     MouseArea {
                         anchors.fill: parent
+                        acceptedButtons: Qt.LeftButton
                         cursorShape: Qt.PointingHandCursor
                         onClicked: gatewayLabel.revealed = !gatewayLabel.revealed
                     }
@@ -679,6 +681,7 @@ PlasmaExtras.Representation {
 
                     MouseArea {
                         anchors.fill: parent
+                        acceptedButtons: Qt.LeftButton
                         cursorShape: Qt.PointingHandCursor
                         onClicked: bssidLabel.revealed = !bssidLabel.revealed
                     }
@@ -759,4 +762,5 @@ PlasmaExtras.Representation {
             }
         }
     }
+
 }

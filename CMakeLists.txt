@@ -80,7 +80,7 @@ ki18n_install(po)
 
 # CPack configuration for DEB package
 set(CPACK_PACKAGE_NAME "truelink-monitor")
-set(CPACK_PACKAGE_VERSION "1.1.11")
+set(CPACK_PACKAGE_VERSION "1.1.15")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Advanced WiFi monitor plasmoid for KDE Plasma 6")
 set(CPACK_PACKAGE_DESCRIPTION "A feature-rich WiFi monitoring widget that displays detailed wireless connection information including signal strength, link rates, traffic statistics, and more.")
 set(CPACK_PACKAGE_CONTACT "xycld <xycld@example.com>")

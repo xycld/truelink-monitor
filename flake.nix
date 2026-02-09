@@ -13,7 +13,7 @@
 
         truelink-monitor = pkgs.stdenv.mkDerivation rec {
           pname = "plasma6-applet-truelink-monitor";
-          version = "1.1.11";
+          version = "1.1.15";
 
           src = ./.;
 
