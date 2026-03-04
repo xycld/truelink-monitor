@@ -203,6 +203,7 @@ jobs:
           tmpdir="$(mktemp -d)"
           git clone "ssh://aur@aur.archlinux.org/plasma6-applet-truelink-monitor.git" "${tmpdir}/aur"
           cd "${tmpdir}/aur"
+          git checkout master 2>/dev/null || git checkout -b master
 
           # We chown the temp dir for makepkg; when git runs as root it may
           # refuse to operate in a repo owned by a different user.
@@ -229,7 +230,4 @@ jobs:
 
           git -c safe.directory="${safedir}" -c user.name="github-actions" -c user.email="actions@github.com" \
             commit -m "Update to ${tag}"
-
-          # Rebase on top of any remote changes to avoid non-fast-forward rejection.
-          git -c safe.directory="${safedir}" pull --rebase origin master || true
-          git -c safe.directory="${safedir}" push origin HEAD:master
+          git -c safe.directory="${safedir}" push origin master
