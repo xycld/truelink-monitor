@@ -16,6 +16,15 @@ PlasmoidItem {
     readonly property bool isAvailable: WifiMonitor.available
     readonly property bool isOnDesktop: Plasmoid.formFactor === PlasmaCore.Types.Planar
 
+    // Apply configured interface on load and when config changes
+    Component.onCompleted: WifiMonitor.setPreferredInterface(Plasmoid.configuration.interfaceName ?? "")
+    Connections {
+        target: Plasmoid.configuration
+        function onInterfaceNameChanged() {
+            WifiMonitor.setPreferredInterface(Plasmoid.configuration.interfaceName ?? "");
+        }
+    }
+
     preferredRepresentation: isOnDesktop ? fullRepresentation : compactRepresentation
 
     Plasmoid.status: {

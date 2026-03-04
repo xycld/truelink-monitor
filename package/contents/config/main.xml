@@ -6,6 +6,9 @@
     <kcfgfile name=""/>
 
     <group name="General">
+        <entry name="interfaceName" type="String">
+            <default></default>
+        </entry>
         <entry name="showLinkRateChart" type="Bool">
             <default>true</default>
         </entry>

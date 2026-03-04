@@ -3,10 +3,12 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kcmutils as KCM
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.private.truelinkmonitor
 
 KCM.SimpleKCM {
     id: root
 
+    property string cfg_interfaceName
     property alias cfg_showLinkRateChart: showLinkRateChart.checked
     property alias cfg_chartHeight: chartHeight.value
     property alias cfg_showSignalInfo: showSignalInfo.checked
@@ -30,6 +32,43 @@ KCM.SimpleKCM {
     property alias cfg_showAirtime: showAirtime.checked
 
     Kirigami.FormLayout {
+        Kirigami.Separator {
+            Kirigami.FormData.isSection: true
+            Kirigami.FormData.label: i18n("Interface")
+        }
+
+        QQC2.ComboBox {
+            id: interfaceCombo
+            Kirigami.FormData.label: i18n("WiFi adapter:")
+
+            property var interfaces: WifiMonitor.availableInterfaces
+
+            model: {
+                var items = [i18n("Automatic")];
+                for (var i = 0; i < interfaces.length; i++) {
+                    items.push(interfaces[i]);
+                }
+                return items;
+            }
+
+            Component.onCompleted: {
+                if (cfg_interfaceName === "") {
+                    currentIndex = 0;
+                } else {
+                    var idx = interfaces.indexOf(cfg_interfaceName);
+                    currentIndex = idx >= 0 ? idx + 1 : 0;
+                }
+            }
+
+            onActivated: function(index) {
+                if (index === 0) {
+                    cfg_interfaceName = "";
+                } else {
+                    cfg_interfaceName = interfaces[index - 1];
+                }
+            }
+        }
+
         Kirigami.Separator {
             Kirigami.FormData.isSection: true
             Kirigami.FormData.label: i18n("Display")

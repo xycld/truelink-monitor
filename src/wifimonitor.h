@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QQmlEngine>
 #include <QString>
+#include <QStringList>
 #include <QVariantList>
 
 /**
@@ -16,6 +17,10 @@ class WifiMonitor : public QObject
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
+
+    // Interface selection
+    Q_PROPERTY(QString interfaceName READ interfaceName NOTIFY connectionChanged)
+    Q_PROPERTY(QStringList availableInterfaces READ availableInterfaces NOTIFY availableInterfacesChanged)
 
     // Connection state
     Q_PROPERTY(bool connected READ connected NOTIFY connectionChanged)
@@ -89,6 +94,11 @@ public:
     explicit WifiMonitor(QObject *parent = nullptr);
     ~WifiMonitor() override;
 
+    // Interface
+    [[nodiscard]] QString interfaceName() const;
+    [[nodiscard]] QStringList availableInterfaces() const;
+    Q_INVOKABLE void setPreferredInterface(const QString &name);
+
     // Connection state
     [[nodiscard]] bool connected() const;
     [[nodiscard]] bool available() const;
@@ -156,6 +166,7 @@ public:
 Q_SIGNALS:
     void connectionChanged();
     void availabilityChanged();
+    void availableInterfacesChanged();
     void statsUpdated();
     void errorOccurred(const QString &message);
     void lastErrorChanged();
@@ -167,6 +178,7 @@ private Q_SLOTS:
 
 private:
     void initNetworkManager();
+    void selectWirelessDevice();
     void initNl80211();
     void startStatsTimer();
     void stopStatsTimer();

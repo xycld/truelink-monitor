@@ -48,12 +48,13 @@ public:
     NetworkManager::WirelessDevice::Ptr wirelessDevice;
     NetworkManager::AccessPoint::Ptr accessPoint;
     NetworkManager::ActiveConnection::Ptr activeConnection;
-    
+
     Nl80211Helper nl80211;
     Nl80211StationInfo stationInfo;
-    
+
     QTimer* statsTimer = nullptr;
     QString interfaceName;
+    QString preferredInterface;  // User-configured interface (empty = auto)
     
     bool isConnected = false;
     bool isAvailable = false;
@@ -117,22 +118,44 @@ void WifiMonitor::initNetworkManager() {
             this, &WifiMonitor::onActiveConnectionChanged);
     connect(NetworkManager::notifier(), &NetworkManager::Notifier::wirelessEnabledChanged,
             this, &WifiMonitor::onDeviceStateChanged);
-    
-    for (const auto& device : NetworkManager::networkInterfaces()) {
-        if (device->type() == NetworkManager::Device::Wifi) {
-            d->wirelessDevice = device.objectCast<NetworkManager::WirelessDevice>();
-            d->interfaceName = device->interfaceName();
-            d->isAvailable = true;
-            
-            connect(d->wirelessDevice.data(), &NetworkManager::WirelessDevice::activeAccessPointChanged,
-                    this, &WifiMonitor::onActiveConnectionChanged);
-            connect(d->wirelessDevice.data(), &NetworkManager::Device::stateChanged,
-                    this, &WifiMonitor::onDeviceStateChanged);
-            break;
-        }
-    }
-    
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::deviceAdded,
+            this, [this]() { Q_EMIT availableInterfacesChanged(); });
+    connect(NetworkManager::notifier(), &NetworkManager::Notifier::deviceRemoved,
+            this, [this]() { Q_EMIT availableInterfacesChanged(); });
+
+    selectWirelessDevice();
     onActiveConnectionChanged();
+}
+
+void WifiMonitor::selectWirelessDevice() {
+    // Disconnect old device signals
+    if (d->wirelessDevice) {
+        disconnect(d->wirelessDevice.data(), nullptr, this, nullptr);
+    }
+    d->wirelessDevice.reset();
+    d->interfaceName.clear();
+    d->isAvailable = false;
+
+    for (const auto& device : NetworkManager::networkInterfaces()) {
+        if (device->type() != NetworkManager::Device::Wifi)
+            continue;
+
+        // If user configured a preferred interface, match by name
+        if (!d->preferredInterface.isEmpty()) {
+            if (device->interfaceName() != d->preferredInterface)
+                continue;
+        }
+
+        d->wirelessDevice = device.objectCast<NetworkManager::WirelessDevice>();
+        d->interfaceName = device->interfaceName();
+        d->isAvailable = true;
+
+        connect(d->wirelessDevice.data(), &NetworkManager::WirelessDevice::activeAccessPointChanged,
+                this, &WifiMonitor::onActiveConnectionChanged);
+        connect(d->wirelessDevice.data(), &NetworkManager::Device::stateChanged,
+                this, &WifiMonitor::onDeviceStateChanged);
+        break;
+    }
 }
 
 void WifiMonitor::initNl80211() {
@@ -304,6 +327,31 @@ void WifiMonitor::updateNl80211Stats() {
     }
     
     Q_EMIT statsUpdated();
+}
+
+QString WifiMonitor::interfaceName() const { return d->interfaceName; }
+
+QStringList WifiMonitor::availableInterfaces() const {
+    QStringList list;
+    for (const auto& device : NetworkManager::networkInterfaces()) {
+        if (device->type() == NetworkManager::Device::Wifi) {
+            list.append(device->interfaceName());
+        }
+    }
+    return list;
+}
+
+void WifiMonitor::setPreferredInterface(const QString &name) {
+    if (d->preferredInterface == name)
+        return;
+
+    d->preferredInterface = name;
+    stopStatsTimer();
+    d->resetStats();
+    selectWirelessDevice();
+    Q_EMIT availableInterfacesChanged();
+    onActiveConnectionChanged();
+    Q_EMIT availabilityChanged();
 }
 
 bool WifiMonitor::connected() const { return d->isConnected; }
