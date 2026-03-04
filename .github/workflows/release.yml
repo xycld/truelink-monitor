@@ -229,4 +229,7 @@ jobs:
 
           git -c safe.directory="${safedir}" -c user.name="github-actions" -c user.email="actions@github.com" \
             commit -m "Update to ${tag}"
+
+          # Rebase on top of any remote changes to avoid non-fast-forward rejection.
+          git -c safe.directory="${safedir}" pull --rebase origin master || true
           git -c safe.directory="${safedir}" push origin HEAD:master
