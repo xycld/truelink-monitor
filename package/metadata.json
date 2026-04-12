@@ -1,4 +1,5 @@
 {
+    "KPackageStructure": "Plasma/Applet",
     "KPlugin": {
         "Id": "org.kde.plasma.truelinkmonitor",
         "Name": "TrueLink Monitor",

@@ -73,13 +73,17 @@ public:
     double smoothedRxRate = 0.0;
     static constexpr double smoothingFactor = 0.3;
 
-    static constexpr int updateIntervalMs = 1000;
+    static constexpr int updateIntervalMs = 2000;
     
     static constexpr int historySize = 60;
     QVector<double> rxHistoryBuffer;
     QVector<double> txHistoryBuffer;
     double maxRate = 100.0;
-    
+
+    mutable QVariantList cachedRxHistory;
+    mutable QVariantList cachedTxHistory;
+    bool historyDirty = true;
+
     void addToHistory(double rx, double tx) {
         rxHistoryBuffer.append(rx);
         txHistoryBuffer.append(tx);
@@ -90,6 +94,7 @@ public:
         maxRate = 100.0;
         for (double v : rxHistoryBuffer) maxRate = qMax(maxRate, v);
         for (double v : txHistoryBuffer) maxRate = qMax(maxRate, v);
+        historyDirty = true;
     }
 
     void resetStats() {
@@ -100,6 +105,7 @@ public:
         txHistoryBuffer.clear();
         maxRate = 100.0;
         lastError.clear();
+        historyDirty = true;
     }
 };
 
@@ -294,39 +300,54 @@ void WifiMonitor::updateNl80211Stats() {
         : nullptr;
     
     Nl80211StationInfo newInfo = d->nl80211.getStationInfo(d->interfaceName.toUtf8().constData(), bssidPtr);
-    
+
+    bool shouldEmitStats = false;
+
     if (newInfo.valid) {
         if (!d->lastError.isEmpty()) {
             d->lastError.clear();
             Q_EMIT lastErrorChanged();
+            shouldEmitStats = true;
         }
 
+        const bool dataChanged = (d->stationInfo.signalDbm != newInfo.signalDbm)
+            || (d->stationInfo.txBitrate != newInfo.txBitrate)
+            || (d->stationInfo.rxBitrate != newInfo.rxBitrate)
+            || (d->stationInfo.txBytes != newInfo.txBytes)
+            || (d->stationInfo.rxBytes != newInfo.rxBytes);
+
         d->stationInfo = newInfo;
-        
+
         double newTx = newInfo.txBitrate / 10.0;
         double newRx = newInfo.rxBitrate / 10.0;
-        
+
         if (d->smoothedTxRate == 0.0) {
             d->smoothedTxRate = newTx;
             d->smoothedRxRate = newRx;
+            shouldEmitStats = true;
         } else {
             d->smoothedTxRate = d->smoothingFactor * newTx + (1.0 - d->smoothingFactor) * d->smoothedTxRate;
             d->smoothedRxRate = d->smoothingFactor * newRx + (1.0 - d->smoothingFactor) * d->smoothedRxRate;
         }
         d->addToHistory(d->smoothedRxRate, d->smoothedTxRate);
+
+        shouldEmitStats = shouldEmitStats || dataChanged;
     } else {
         const QString error = d->nl80211.lastError();
         if (error != d->lastError) {
             d->lastError = error;
             Q_EMIT lastErrorChanged();
+            shouldEmitStats = true;
 
             if (!error.isEmpty()) {
                 Q_EMIT errorOccurred(error);
             }
         }
     }
-    
-    Q_EMIT statsUpdated();
+
+    if (shouldEmitStats) {
+        Q_EMIT statsUpdated();
+    }
 }
 
 QString WifiMonitor::interfaceName() const { return d->interfaceName; }
@@ -453,19 +474,33 @@ QString WifiMonitor::statusColor() const {
 }
 
 QVariantList WifiMonitor::rxHistory() const {
-    QVariantList list;
-    for (double v : d->rxHistoryBuffer) {
-        list.append(v);
+    if (d->historyDirty) {
+        d->cachedRxHistory.clear();
+        d->cachedTxHistory.clear();
+        for (double v : d->rxHistoryBuffer) {
+            d->cachedRxHistory.append(v);
+        }
+        for (double v : d->txHistoryBuffer) {
+            d->cachedTxHistory.append(v);
+        }
+        d->historyDirty = false;
     }
-    return list;
+    return d->cachedRxHistory;
 }
 
 QVariantList WifiMonitor::txHistory() const {
-    QVariantList list;
-    for (double v : d->txHistoryBuffer) {
-        list.append(v);
+    if (d->historyDirty) {
+        d->cachedRxHistory.clear();
+        d->cachedTxHistory.clear();
+        for (double v : d->rxHistoryBuffer) {
+            d->cachedRxHistory.append(v);
+        }
+        for (double v : d->txHistoryBuffer) {
+            d->cachedTxHistory.append(v);
+        }
+        d->historyDirty = false;
     }
-    return list;
+    return d->cachedTxHistory;
 }
 
 double WifiMonitor::maxHistoryRate() const {
